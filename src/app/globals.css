@@ -1,0 +1,430 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #0A0F1C;
+  --background-alt: #0D1321;
+  --accent: #33E1FF;
+  --accent-glow: rgba(51, 225, 255, 0.25);
+  --slate: #1F2937;
+  --slate-light: #374151;
+  --slate-dark: #111827;
+  --success: #10B981;
+  --warning: #F59E0B;
+  --danger: #EF4444;
+}
+
+body {
+  background-color: var(--background);
+  color: #ffffff;
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom scrollbar — refined for premium feel */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(55, 65, 81, 0.4);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(75, 85, 99, 0.7);
+}
+
+/* Glass card effect — multi-layer depth */
+.glass-card {
+  background: rgba(17, 24, 39, 0.88);
+  backdrop-filter: blur(20px) saturate(120%);
+  -webkit-backdrop-filter: blur(20px) saturate(120%);
+  border: 1px solid rgba(51, 225, 255, 0.08);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.02);
+}
+
+.glass-card-light {
+  background: rgba(31, 41, 55, 0.45);
+  backdrop-filter: blur(16px) saturate(110%);
+  -webkit-backdrop-filter: blur(16px) saturate(110%);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.015);
+}
+
+/* Glow effects */
+.glow-accent {
+  box-shadow: 0 0 20px rgba(51, 225, 255, 0.2), 0 0 60px rgba(51, 225, 255, 0.05);
+}
+
+.glow-subtle {
+  box-shadow: 0 0 12px rgba(51, 225, 255, 0.1);
+}
+
+/* Focus ring utility for accessibility */
+.focus-ring:focus-visible {
+  outline: 2px solid rgba(51, 225, 255, 0.5);
+  outline-offset: 2px;
+}
+
+/* Smooth transitions (scoped to avoid interfering with animations) */
+button, a, input, select {
+  transition-property: color, background-color, border-color, opacity, transform, box-shadow;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+/* Active press states for all interactive elements */
+button:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+/* ─── Mock Map Styles ───────────────────────────────────────────────── */
+
+.mock-map-bg {
+  background:
+    radial-gradient(ellipse at 40% 45%, #1a4a3a 0%, transparent 55%),
+    radial-gradient(ellipse at 65% 60%, #2d4a3d 0%, transparent 50%),
+    radial-gradient(ellipse at 30% 70%, #1a3a2e 0%, transparent 60%),
+    radial-gradient(ellipse at 70% 30%, #264238 0%, transparent 45%),
+    radial-gradient(ellipse at 50% 50%, #142d24 0%, transparent 70%),
+    linear-gradient(145deg, #0d1f18 0%, #1a3a2e 25%, #2d5a3d 50%, #1a4a3a 75%, #0d2518 100%);
+  background-size: 100% 100%;
+  animation: mapShift 20s ease-in-out infinite;
+}
+
+@keyframes mapShift {
+  0%, 100% { filter: brightness(1) saturate(1); }
+  50% { filter: brightness(1.05) saturate(1.1); }
+}
+
+.mock-map-grid {
+  background-image:
+    linear-gradient(rgba(51, 225, 255, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(51, 225, 255, 0.08) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+
+.mock-scanline {
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, rgba(51, 225, 255, 0.15), transparent);
+  animation: scanline 8s linear infinite;
+  box-shadow: 0 0 20px rgba(51, 225, 255, 0.08);
+}
+
+@keyframes scanline {
+  0% { transform: translateY(-20px); }
+  100% { transform: translateY(calc(100vh + 20px)); }
+}
+
+.change-zone {
+  animation: zone-pulse 4s ease-in-out infinite;
+}
+
+@keyframes zone-pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+/* Alert marker pulse animation */
+@keyframes pulse-marker {
+  0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5); }
+  70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+
+/* MapLibre popup override */
+.tt-popup .maplibregl-popup-content {
+  background: #1F2937 !important;
+  color: white !important;
+  border-radius: 10px !important;
+  padding: 12px 16px !important;
+  border: 1px solid rgba(51, 225, 255, 0.15) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
+}
+.tt-popup .maplibregl-popup-tip {
+  border-top-color: #1F2937 !important;
+}
+
+/* MapLibre nav control override */
+.maplibregl-ctrl-group {
+  background: rgba(17, 24, 39, 0.9) !important;
+  border: 1px solid rgba(51, 225, 255, 0.15) !important;
+  border-radius: 10px !important;
+  overflow: hidden;
+}
+.maplibregl-ctrl-group button {
+  background: transparent !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+.maplibregl-ctrl-group button:hover {
+  background: rgba(51, 225, 255, 0.1) !important;
+}
+.maplibregl-ctrl-group button .maplibregl-ctrl-icon {
+  filter: invert(1) brightness(0.8);
+}
+
+/* MapLibre attribution override — dark theme */
+.maplibregl-ctrl-attrib {
+  background: rgba(10, 15, 28, 0.75) !important;
+  font-size: 10px !important;
+}
+.maplibregl-ctrl-attrib a {
+  color: #94A3B8 !important;
+}
+
+/* Region hover tooltip — lightweight dark tooltip */
+.tt-region-tooltip .maplibregl-popup-content {
+  background: rgba(17, 24, 39, 0.95) !important;
+  color: #E2E8F0 !important;
+  border-radius: 6px !important;
+  padding: 6px 10px !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  font-family: Inter, sans-serif !important;
+  border: 1px solid rgba(51, 225, 255, 0.2) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+  pointer-events: none;
+}
+.tt-region-tooltip .maplibregl-popup-tip {
+  border-top-color: rgba(17, 24, 39, 0.95) !important;
+}
+
+/* ─── Metric card hover ─────────────────────────────────────────────── */
+.metric-card {
+  transition: transform 250ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 250ms ease, border-color 250ms ease;
+}
+.metric-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(51, 225, 255, 0.08);
+  border-color: rgba(51, 225, 255, 0.1);
+}
+
+/* ─── Chart card hover ──────────────────────────────────────────────── */
+.chart-card {
+  transition: border-color 250ms ease, box-shadow 250ms ease;
+}
+.chart-card:hover {
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+/* ─── Sidebar nav item ──────────────────────────────────────────────── */
+.nav-item {
+  transition: transform 150ms ease, background-color 150ms ease, color 150ms ease;
+}
+.nav-item:hover {
+  transform: translateX(2px);
+}
+.nav-item:active {
+  transform: translateX(2px) scale(0.98);
+}
+
+/* ─── Range input styling ───────────────────────────────────────────── */
+input[type="range"] {
+  -webkit-appearance: none;
+  height: 6px;
+  background: #374151;
+  border-radius: 3px;
+  outline: none;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #33E1FF;
+  cursor: pointer;
+  box-shadow: 0 0 8px rgba(51, 225, 255, 0.4);
+  border: 2px solid #0A0F1C;
+}
+input[type="range"]::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #33E1FF;
+  cursor: pointer;
+  box-shadow: 0 0 8px rgba(51, 225, 255, 0.4);
+  border: 2px solid #0A0F1C;
+}
+
+/* ─── Date input styling ────────────────────────────────────────────── */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.7);
+}
+
+/* ─── Animations ────────────────────────────────────────────────────── */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(10px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(20px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.3s ease-out;
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 0.4s ease-out;
+}
+
+/* ─── Chart tooltip override ────────────────────────────────────────── */
+.recharts-default-tooltip {
+  background: #1F2937 !important;
+  border: 1px solid rgba(51, 225, 255, 0.15) !important;
+  border-radius: 10px !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* ─── Interactive Map Regions ───────────────────────────────────────── */
+.region-polygon {
+  fill: rgba(255, 255, 255, 0.03);
+  stroke: rgba(255, 255, 255, 0.12);
+  stroke-width: 1.5;
+  cursor: pointer;
+  transition: fill 0.3s ease, stroke 0.3s ease, stroke-width 0.2s ease, filter 0.3s ease;
+}
+
+.region-polygon:hover {
+  fill: rgba(255, 255, 255, 0.08);
+  stroke: rgba(51, 225, 255, 0.5);
+  stroke-width: 2;
+  filter: drop-shadow(0 0 8px rgba(51, 225, 255, 0.3));
+}
+
+.region-polygon.selected {
+  stroke-width: 2.5;
+  animation: region-pulse 3s ease-in-out infinite;
+}
+
+@keyframes region-pulse {
+  0%, 100% { filter: drop-shadow(0 0 6px var(--region-glow)); }
+  50% { filter: drop-shadow(0 0 16px var(--region-glow)); }
+}
+
+/* ─── Map Region Tooltip ────────────────────────────────────────────── */
+.region-tooltip {
+  position: absolute;
+  pointer-events: none;
+  z-index: 50;
+  padding: 8px 14px;
+  border-radius: 10px;
+  background: rgba(17, 24, 39, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(51, 225, 255, 0.15);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+  transform: translate(-50%, -120%);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.region-tooltip.visible {
+  opacity: 1;
+}
+
+/* ─── Alert Marker (map overlay) ────────────────────────────────────── */
+.map-alert-dot {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+  z-index: 15;
+}
+
+.map-alert-ring {
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 14;
+}
+
+/* ─── AI Insight Cards ──────────────────────────────────────────────── */
+.insight-card {
+  position: relative;
+  border-radius: 12px;
+  background: rgba(31, 41, 55, 0.45);
+  backdrop-filter: blur(12px) saturate(110%);
+  -webkit-backdrop-filter: blur(12px) saturate(110%);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  overflow: hidden;
+  transition: transform 250ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 250ms ease, border-color 250ms ease;
+}
+
+.insight-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.insight-card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+}
+
+.insight-card.severity-high::before {
+  background: linear-gradient(180deg, #EF4444 0%, #DC2626 100%);
+  box-shadow: 2px 0 8px rgba(239, 68, 68, 0.3);
+}
+
+.insight-card.severity-moderate::before {
+  background: linear-gradient(180deg, #F59E0B 0%, #D97706 100%);
+  box-shadow: 2px 0 8px rgba(245, 158, 11, 0.2);
+}
+
+.insight-card.severity-informational::before {
+  background: linear-gradient(180deg, #3B82F6 0%, #2563EB 100%);
+  box-shadow: 2px 0 8px rgba(59, 130, 246, 0.2);
+}
+
+/* ─── Change Zone Overlay ───────────────────────────────────────────── */
+.change-zone-overlay {
+  position: absolute;
+  border-radius: 12px;
+  pointer-events: none;
+  animation: zone-breathe 4s ease-in-out infinite;
+}
+
+@keyframes zone-breathe {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 0.85; }
+}
+

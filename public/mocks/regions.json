@@ -1,0 +1,33 @@
+[
+  {
+    "id": "region-1",
+    "name": "Amazon Basin - Northern Sector",
+    "bbox": {
+      "minLon": -70.0,
+      "minLat": -5.0,
+      "maxLon": -60.0,
+      "maxLat": 5.0
+    },
+    "defaultDateRange": {
+      "start": "2024-01-01",
+      "end": "2024-01-30"
+    },
+    "areaKm2": 1250000
+  },
+  {
+    "id": "region-2",
+    "name": "Sahara Desert - Central Region",
+    "bbox": {
+      "minLon": 10.0,
+      "minLat": 20.0,
+      "maxLon": 20.0,
+      "maxLat": 30.0
+    },
+    "defaultDateRange": {
+      "start": "2024-01-01",
+      "end": "2024-01-30"
+    },
+    "areaKm2": 850000
+  }
+]
+

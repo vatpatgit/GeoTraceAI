@@ -1,0 +1,21 @@
+{
+  "region-1": {
+    "grid": [
+      {"lon": -68.5, "lat": -3.2, "confidence": 0.87},
+      {"lon": -68.0, "lat": -3.0, "confidence": 0.92},
+      {"lon": -67.5, "lat": -2.8, "confidence": 0.85},
+      {"lon": -67.0, "lat": -2.5, "confidence": 0.79},
+      {"lon": -66.5, "lat": -2.3, "confidence": 0.94}
+    ]
+  },
+  "region-2": {
+    "grid": [
+      {"lon": 15.2, "lat": 25.3, "confidence": 0.89},
+      {"lon": 15.8, "lat": 25.5, "confidence": 0.93},
+      {"lon": 16.2, "lat": 25.7, "confidence": 0.86},
+      {"lon": 16.8, "lat": 26.0, "confidence": 0.91},
+      {"lon": 17.2, "lat": 26.2, "confidence": 0.88}
+    ]
+  }
+}
+
