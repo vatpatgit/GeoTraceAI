@@ -3,10 +3,11 @@
 import { Search, Bell, User, BarChart3, Satellite, AlertTriangle } from 'lucide-react'
 import { useState, useRef, useEffect } from 'react'
 import { useAppStore } from '@/store/useAppStore'
-import { REGIONS, getRecentAlerts } from '@/lib/mockData'
+import { REGIONS } from '@/lib/mockData'
+import { BackendAlert, listAlerts } from '@/lib/alertsApi'
 
 export default function Header() {
-  const { setAnalyticsPanelOpen, analyticsPanelOpen, selectedRegion } = useAppStore()
+  const { setAnalyticsPanelOpen, analyticsPanelOpen, regions } = useAppStore()
   const [searchQuery, setSearchQuery] = useState('')
   const [showSearchResults, setShowSearchResults] = useState(false)
   const [showNotifications, setShowNotifications] = useState(false)
@@ -14,13 +15,17 @@ export default function Header() {
   const notifRef = useRef<HTMLDivElement>(null)
   const { setSelectedRegion } = useAppStore()
 
-  const alerts = getRecentAlerts(selectedRegion)
+  const [alerts, setAlerts] = useState<BackendAlert[]>([])
+
+  useEffect(() => {
+    listAlerts().then((response) => setAlerts(response.alerts)).catch(() => setAlerts([]))
+  }, [])
 
   // Filter regions by search
   const searchResults = searchQuery.length > 0
-    ? REGIONS.filter((r) =>
-        r.name.toLowerCase().includes(searchQuery.toLowerCase())
-      )
+    ? (regions.length > 0 ? regions : REGIONS).filter((r) =>
+      r.name.toLowerCase().includes(searchQuery.toLowerCase())
+    )
     : []
 
   // Close dropdowns on outside click
@@ -106,11 +111,10 @@ export default function Header() {
         {/* Analytics Toggle */}
         <button
           onClick={() => setAnalyticsPanelOpen(!analyticsPanelOpen)}
-          className={`p-2 rounded-lg transition-all ${
-            analyticsPanelOpen
-              ? 'bg-accent/10 text-accent'
-              : 'text-slate-400 hover:bg-white/5 hover:text-white'
-          }`}
+          className={`p-2 rounded-lg transition-all ${analyticsPanelOpen
+            ? 'bg-accent/10 text-accent'
+            : 'text-slate-400 hover:bg-white/5 hover:text-white'
+            }`}
           aria-label="Toggle analytics panel"
           id="toggle-analytics-btn"
           title="Toggle Analytics"
@@ -148,13 +152,12 @@ export default function Header() {
                     className="px-4 py-3 hover:bg-white/[0.03] transition-colors border-b border-white/[0.03] last:border-b-0 cursor-pointer"
                   >
                     <div className="flex items-start gap-2.5">
-                      <AlertTriangle className={`w-3.5 h-3.5 mt-0.5 flex-shrink-0 ${
-                        alert.severity === 'critical' ? 'text-red-400' :
+                      <AlertTriangle className={`w-3.5 h-3.5 mt-0.5 flex-shrink-0 ${alert.severity === 'critical' ? 'text-red-400' :
                         alert.severity === 'warning' ? 'text-amber-400' : 'text-blue-400'
-                      }`} />
+                        }`} />
                       <div>
-                        <div className="text-xs font-medium text-white">{alert.title}</div>
-                        <div className="text-[10px] text-slate-400 mt-0.5 line-clamp-1">{alert.description}</div>
+                        <div className="text-xs font-medium text-white">{alert.severity.toUpperCase()} Alert</div>
+                        <div className="text-[10px] text-slate-400 mt-0.5 line-clamp-1">{alert.message}</div>
                       </div>
                     </div>
                   </div>

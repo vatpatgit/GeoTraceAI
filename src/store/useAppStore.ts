@@ -1,17 +1,28 @@
 import { create } from 'zustand'
-import type { UserRole, MapViewState, AlertConfig, DateRange } from '@/types'
+import type { UserRole, ViewMode, MapViewState, AlertConfig, DateRange } from '@/types'
 import type { LayerVisibilityState } from '@/types/layers'
-import { REGION_CENTERS } from '@/lib/mockData'
 import { getDefaultLayerVisibility } from '@/services/maps/layerManager'
+
+interface AuthUser {
+  id: string
+  email: string
+  name: string
+  role: UserRole
+}
 
 interface AppState {
   // Auth
+  authStatus: 'loading' | 'authenticated' | 'unauthenticated'
+  setAuthStatus: (status: AppState['authStatus']) => void
+  authUser: AuthUser | null
+  setAuthUser: (user: AuthUser | null) => void
   userRole: UserRole
   setUserRole: (role: UserRole) => void
 
   // Map state
   mapView: MapViewState
   setMapView: (view: Partial<MapViewState>) => void
+  setViewMode: (mode: ViewMode) => void
   updateMapCenter: (center: [number, number]) => void
   updateZoom: (zoom: number) => void
   setCurrentDate: (date: string) => void
@@ -28,6 +39,12 @@ interface AppState {
   selectedDate: string
 
   // Region selection
+  regions: import('@/types').Region[]
+  regionsLoading: boolean
+  regionsError: string | null
+  setRegions: (regions: import('@/types').Region[]) => void
+  setRegionsLoading: (loading: boolean) => void
+  setRegionsError: (error: string | null) => void
   selectedRegion: string
   setSelectedRegion: (regionId: string) => void
 
@@ -68,9 +85,12 @@ const defaultDateRange: DateRange = {
 }
 
 const defaultMapView: MapViewState = {
+  viewMode: 'globe',
   center: [-65.0, -2.5],
   zoom: 6,
-  selectedRegion: 'region-1',
+  bearing: 0,
+  pitch: 0,
+  selectedRegion: '',
   currentDate: '2024-01-15',
   dateRange: defaultDateRange,
   activeLayers: {
@@ -82,14 +102,28 @@ const defaultMapView: MapViewState = {
   comparisonDate: null,
 }
 
-export const useAppStore = create<AppState>((set) => ({
+export const useAppStore = create<AppState>((set, get) => ({
   // Auth
-  userRole: 'Researcher',
-  setUserRole: (role) => set({ userRole: role }),
+  authStatus: 'loading',
+  setAuthStatus: (status) => set({ authStatus: status }),
+  authUser: null,
+  setAuthUser: (user) =>
+    set((state) => ({
+      authUser: user,
+      authStatus: user ? 'authenticated' : 'unauthenticated',
+      userRole: user?.role ?? state.userRole,
+    })),
+  userRole: 'Viewer',
+  setUserRole: (role) =>
+    set((state) => ({
+      userRole: role,
+      authUser: state.authUser ? { ...state.authUser, role } : state.authUser,
+    })),
 
   // Map state
   mapView: defaultMapView,
   setMapView: (view) => set((state) => ({ mapView: { ...state.mapView, ...view } })),
+  setViewMode: (mode) => set((state) => ({ mapView: { ...state.mapView, viewMode: mode } })),
   updateMapCenter: (center) =>
     set((state) => ({ mapView: { ...state.mapView, center } })),
   updateZoom: (zoom) => set((state) => ({ mapView: { ...state.mapView, zoom } })),
@@ -145,16 +179,36 @@ export const useAppStore = create<AppState>((set) => ({
   selectedDate: '2024-01-15',
 
   // Region selection — now also updates map center
-  selectedRegion: 'region-1',
+  regions: [],
+  regionsLoading: false,
+  regionsError: null,
+  setRegions: (regions) => set((state) => ({
+    regions,
+    selectedRegion: state.selectedRegion && regions.some((region) => region.id === state.selectedRegion)
+      ? state.selectedRegion
+      : regions[0]?.id ?? null,
+    mapView: {
+      ...state.mapView,
+      selectedRegion: state.selectedRegion && regions.some((region) => region.id === state.selectedRegion)
+        ? state.selectedRegion
+        : regions[0]?.id ?? null,
+    },
+  })),
+  setRegionsLoading: (loading) => set({ regionsLoading: loading }),
+  setRegionsError: (error) => set({ regionsError: error }),
+  selectedRegion: '',
   setSelectedRegion: (regionId) => {
-    const rc = REGION_CENTERS[regionId]
+    const region = get().regions.find((item) => item.id === regionId)
+    const center: [number, number] = region
+      ? [(region.bbox.minLon + region.bbox.maxLon) / 2, (region.bbox.minLat + region.bbox.maxLat) / 2]
+      : defaultMapView.center
     set({
       selectedRegion: regionId,
       mapView: {
         ...defaultMapView,
         selectedRegion: regionId,
-        center: rc ? rc.center : defaultMapView.center,
-        zoom: rc ? rc.zoom : defaultMapView.zoom,
+        center,
+        zoom: region ? 5 : defaultMapView.zoom,
       },
     })
   },

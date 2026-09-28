@@ -1,4 +1,5 @@
 from uuid import UUID
+from datetime import date, datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
@@ -89,16 +90,7 @@ async def get_region_analytics(
         .order_by(ChangeEvent.detected_at.desc())
         .limit(10)
     )
-    recent_events = [
-        {
-            "id": str(e.id),
-            "change_type": e.change_type,
-            "confidence": e.confidence,
-            "area_affected_km2": e.area_affected_km2,
-            "detected_at": e.detected_at.isoformat() if e.detected_at else None,
-        }
-        for e in recent_result.scalars().all()
-    ]
+    recent_events = list(recent_result.scalars().all())
     
     return RegionAnalytics(
         region_id=region_id,
@@ -117,21 +109,37 @@ async def get_trends(
     region_id: UUID | None = Query(None),
     days: int = Query(30, ge=1, le=365),
     metric: str = Query("changes"),
+    start_date: date | None = Query(None),
+    end_date: date | None = Query(None),
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """Get trend data for charts."""
-    from datetime import datetime, timedelta, timezone
     from sqlalchemy import Date, cast
-    
-    start_date = datetime.now(timezone.utc) - timedelta(days=days)
+
+    if start_date and end_date and start_date > end_date:
+        raise HTTPException(status_code=422, detail="start_date must be before end_date")
+
+    range_start = (
+        datetime.combine(start_date, datetime.min.time(), tzinfo=timezone.utc)
+        if start_date
+        else datetime.now(timezone.utc) - timedelta(days=days)
+    )
+    range_end = (
+        datetime.combine(end_date, datetime.max.time(), tzinfo=timezone.utc)
+        if end_date
+        else None
+    )
     
     stmt = select(
         cast(ChangeEvent.detected_at, Date).label("date"),
         func.count(ChangeEvent.id).label("count"),
         func.coalesce(func.sum(ChangeEvent.area_affected_km2), 0.0).label("area"),
         func.coalesce(func.avg(ChangeEvent.confidence), 0.0).label("avg_conf"),
-    ).where(ChangeEvent.detected_at >= start_date)
+    ).where(ChangeEvent.detected_at >= range_start)
+
+    if range_end:
+        stmt = stmt.where(ChangeEvent.detected_at <= range_end)
     
     if region_id:
         stmt = stmt.where(ChangeEvent.region_id == region_id)

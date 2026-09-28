@@ -5,7 +5,7 @@
  * The rest of the application (BaseMap, styles, attribution) adapts automatically.
  */
 
-import { ESRI_WORLD_IMAGERY_ATTRIBUTION } from './attribution'
+import { ESRI_WORLD_IMAGERY_ATTRIBUTION, CARTO_DARK_MATTER_ATTRIBUTION } from './attribution'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -37,7 +37,22 @@ export const ESRI_WORLD_IMAGERY: TileSourceConfig = {
   attribution: ESRI_WORLD_IMAGERY_ATTRIBUTION,
 }
 
+export const CARTO_DARK_MATTER: TileSourceConfig = {
+  id: 'carto-dark',
+  type: 'raster',
+  tiles: [
+    'https://a.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}@2x.png',
+    'https://b.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}@2x.png',
+    'https://c.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}@2x.png',
+    'https://d.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}@2x.png',
+  ],
+  tileSize: 256,
+  maxzoom: 20,
+  attribution: CARTO_DARK_MATTER_ATTRIBUTION,
+}
+
 // ─── Default ──────────────────────────────────────────────────────────────────
 // Change this single line to swap the satellite provider globally.
 
 export const DEFAULT_TILE_SOURCE: TileSourceConfig = ESRI_WORLD_IMAGERY
+

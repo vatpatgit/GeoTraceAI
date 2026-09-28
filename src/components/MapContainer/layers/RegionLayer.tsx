@@ -21,13 +21,14 @@
 import { useEffect, useRef } from 'react'
 import { useAppStore } from '@/store/useAppStore'
 import { loadRegionGeoJSON } from '@/services/maps/regionLoader'
+import type { Region } from '@/types'
 
 // ─── Layer IDs (centralized for cleanup + filter updates) ─────────────────────
 const LAYER = {
-  FILL:            'region-fill',
-  BORDER:          'region-border',
-  HOVER:           'region-hover',
-  SELECTED:        'region-selected',
+  FILL: 'region-fill',
+  BORDER: 'region-border',
+  HOVER: 'region-hover',
+  SELECTED: 'region-selected',
   SELECTED_BORDER: 'region-selected-border',
 } as const
 
@@ -40,23 +41,38 @@ interface RegionLayerProps {
   map: any
   /** The maplibregl module (for Popup constructor) */
   mapLib: any
+  regions: Region[]
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export default function RegionLayer({ map, mapLib }: RegionLayerProps) {
-  const { selectedRegion, setSelectedRegion } = useAppStore()
+export default function RegionLayer({ map, mapLib, regions }: RegionLayerProps) {
+  const { selectedRegion, setSelectedRegion, layerVisibility } = useAppStore()
+  const regionLayerState = layerVisibility.regions
   const hoverPopupRef = useRef<any>(null)
 
   // ── Add source + layers + event handlers ──────────────────────────────────
   useEffect(() => {
     if (!map || !mapLib) return
 
-    // Hot-reload safety: don't re-add if already present
-    if (map.getSource(SOURCE_ID)) return
+    const dynamicFeatures = regions
+      .filter((region) => region.geometry)
+      .map((region) => ({
+        type: 'Feature' as const,
+        id: region.id,
+        properties: { id: region.id, name: region.name },
+        geometry: region.geometry!,
+      }))
+    const geojson = dynamicFeatures.length > 0
+      ? { type: 'FeatureCollection' as const, features: dynamicFeatures }
+      : loadRegionGeoJSON()
 
-    // Load GeoJSON from static import
-    const geojson = loadRegionGeoJSON()
+    // Update an existing source when backend regions arrive after map load.
+    const existingSource = map.getSource(SOURCE_ID)
+    if (existingSource) {
+      existingSource.setData(geojson)
+      return
+    }
 
     map.addSource(SOURCE_ID, {
       type: 'geojson',
@@ -177,7 +193,7 @@ export default function RegionLayer({ map, mapLib }: RegionLayerProps) {
       }
       // Layers and source are cleaned up when map.remove() is called by BaseMap
     }
-  }, [map, mapLib]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [map, mapLib, regions]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Update selected highlight when selectedRegion changes ─────────────────
   useEffect(() => {
@@ -191,6 +207,28 @@ export default function RegionLayer({ map, mapLib }: RegionLayerProps) {
       // Layers may not exist yet during initial setup
     }
   }, [selectedRegion, map])
+
+  useEffect(() => {
+    if (!map) return
+    const visibility = regionLayerState?.visible ? 'visible' : 'none'
+    const opacity = regionLayerState?.opacity ?? 1
+    for (const layerId of [LAYER.FILL, LAYER.BORDER, LAYER.HOVER, LAYER.SELECTED, LAYER.SELECTED_BORDER]) {
+      try {
+        map.setLayoutProperty(layerId, 'visibility', visibility)
+      } catch {
+        // Layers may not exist during map initialization.
+      }
+    }
+    try {
+      map.setPaintProperty(LAYER.FILL, 'fill-opacity', opacity * 0.2)
+      map.setPaintProperty(LAYER.HOVER, 'fill-opacity', opacity)
+      map.setPaintProperty(LAYER.SELECTED, 'fill-opacity', opacity)
+      map.setPaintProperty(LAYER.BORDER, 'line-opacity', opacity)
+      map.setPaintProperty(LAYER.SELECTED_BORDER, 'line-opacity', opacity)
+    } catch {
+      // Layers may not exist during map initialization.
+    }
+  }, [map, regionLayerState?.visible, regionLayerState?.opacity])
 
   // This component manages MapLibre layers, not DOM elements
   return null

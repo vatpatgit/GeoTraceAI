@@ -1,20 +1,24 @@
 from typing import Optional
+from pydantic import AliasChoices, Field, computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from pydantic import computed_field
 
 class Settings(BaseSettings):
     POSTGRES_HOST: str = "localhost"
     POSTGRES_PORT: int = 5432
     POSTGRES_DB: str = "terratrack"
     POSTGRES_USER: str = "terratrack"
-    POSTGRES_PASSWORD: str = "terratrack_dev"
+    POSTGRES_PASSWORD: str = ""
 
-    JWT_SECRET: str = "change-me-in-production-use-a-long-random-string"
+    JWT_SECRET_KEY: str = Field(
+        ...,
+        validation_alias=AliasChoices("JWT_SECRET_KEY", "JWT_SECRET"),
+        min_length=32,
+    )
     JWT_ALGORITHM: str = "HS256"
     JWT_EXPIRY_HOURS: int = 24
 
-    SENTINEL_HUB_CLIENT_ID: str = "your-client-id"
-    SENTINEL_HUB_CLIENT_SECRET: str = "your-client-secret"
+    SENTINEL_HUB_CLIENT_ID: Optional[str] = None
+    SENTINEL_HUB_CLIENT_SECRET: Optional[str] = None
     SENTINEL_HUB_PROCESS_API_KEY: Optional[str] = None
     SENTINEL_HUB_CATALOG_API_KEY: Optional[str] = None
     SENTINEL_HUB_STATISTICS_API_KEY: Optional[str] = None
@@ -29,5 +33,10 @@ class Settings(BaseSettings):
     @computed_field
     def DATABASE_URL(self) -> str:
         return f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+
+    @property
+    def JWT_SECRET(self) -> str:
+        """Compatibility accessor for existing JWT service code."""
+        return self.JWT_SECRET_KEY
 
 settings = Settings()

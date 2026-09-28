@@ -10,11 +10,27 @@ import RegionSelector from './RegionSelector'
 import AlertConfigurator from './AlertConfigurator'
 import ReportDownloader from './ReportDownloader'
 import AuthMock from './AuthMock'
+import AlertPanel from './AlertSystem/AlertPanel'
 import { useAppStore } from '@/store/useAppStore'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useEffect } from 'react'
+import { fetchRegions } from '@/lib/mockApi'
 
 export default function Dashboard() {
-  const { analyticsPanelOpen } = useAppStore()
+  const { analyticsPanelOpen, setRegions, setRegionsLoading, setRegionsError, regions } = useAppStore()
+
+  useEffect(() => {
+    let cancelled = false
+    setRegionsLoading(true)
+    fetchRegions().then((loadedRegions) => {
+      if (!cancelled) setRegions(loadedRegions)
+    }).catch(() => {
+      if (!cancelled) setRegionsError('Unable to load monitoring regions.')
+    }).finally(() => {
+      if (!cancelled) setRegionsLoading(false)
+    })
+    return () => { cancelled = true }
+  }, [setRegions, setRegionsError, setRegionsLoading])
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-[#0A0F1C]" id="dashboard-root">
@@ -39,6 +55,7 @@ export default function Dashboard() {
             {/* Map */}
             <div className="flex-1 relative min-h-0">
               <BaseMap />
+              <AlertPanel />
             </div>
 
             {/* Bottom Time Slider */}

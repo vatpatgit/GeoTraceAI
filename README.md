@@ -1,12 +1,14 @@
 # TerraTrack - AI Satellite Monitoring Dashboard
 
-A production-quality frontend prototype for AI satellite monitoring and change detection. This is a **demo for stakeholders** — it uses local mock data only (no API keys, no backend). The focus is on UI, interactions, and realistic map/analytics UX.
+A frontend prototype for AI satellite monitoring and change detection with a MapLibre dashboard and FastAPI integration. Live API calls are used when configured; mock data is retained as an explicit development fallback.
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 
 - Node.js 18+ and npm/yarn/pnpm
+- Python 3.11+
+- PostgreSQL with PostGIS (Docker Compose is provided)
 
 ### Installation
 
@@ -17,6 +19,10 @@ npm install
 # Run development server
 npm run dev
 ```
+
+Create environment files from `.env.example` and `backend/.env.example`. Never commit `.env` files. Sentinel Hub credentials and `JWT_SECRET_KEY` are server-only values; rotate any credentials previously exposed in repository history.
+
+Start the backend from `backend/` with `uvicorn app.main:app --reload --port 8000`, then start the frontend with `npm run dev`.
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
 
@@ -60,10 +66,14 @@ npm start
 ### Core Dashboard
 - **Left Sidebar**: Navigation (Dashboard, Regions, Analytics, Alerts, Reports, Settings)
 - **Top Header**: Search, notifications, dark mode toggle, user menu
-- **Map Viewer**: Interactive map with zoom/pan, polygon drawing, layer overlays
+- **Geospatial Visualization System (Phase 5)**:
+  - **🌍 3D Globe**: Genuine interactive WebGL spherical Earth with atmospheric edge glow, smooth rotation, and dark space background.
+  - **🛰️ Satellite Mode**: 2D orthogonal top-down satellite imagery view with georeferenced Sentinel-2 and change-detection overlays.
+  - **🗺️ Map Mode**: Cartographic vector/raster map with roads, boundaries, labels, and city markers.
+  - **Unified State**: Zero-loss state switching preserving coordinates, zoom, selected AOI, date, active Sentinel overlays, and change detections.
 - **Analytics Panel**: Metric cards, time-series charts, bar charts, heatmaps
 - **Time Slider**: Dual-date range selector with play/pause animation
-- **Floating Controls**: Region selector, layer toggles, export view
+- **Floating Controls**: Region selector, layer toggles, view-mode switcher, export view
 
 ### Interactive Features
 - **Map Interactions**: Click to view confidence, draw polygons, zoom/pan
@@ -74,8 +84,10 @@ npm start
 - **Export**: Download current map view as PNG
 - **Role-Based UI**: Admin/Researcher/Viewer roles with different permissions
 
-### Mock Data System
-All data is fetched from `/public/mocks/` to simulate API calls:
+### Development Mock Mode
+The shared client attempts the configured FastAPI backend and falls back to `/public/mocks/` only for unavailable non-authentication requests. HTTP 401 and 403 responses are never converted into mock data.
+
+Mock files include:
 - `regions.json` - List of monitoring regions
 - `timeseries.json` - Time-series data per region
 - `changes.json` - Change polygons by date
@@ -158,6 +170,14 @@ export function getOverlayUrl(regionId: string, date: string, layer: string): st
 }
 ```
 
+### Roles and Permissions
+
+- `ADMIN`: user management, region and change mutations, alert management, reports, and all read access.
+- `USER` (legacy `researcher` records are normalized): dashboard, analytics, changes, alerts, reports, and permitted alert configuration.
+- `VIEWER`: read-only dashboard, regions, analytics, changes, and alerts.
+
+The backend is authoritative for authorization. Frontend state is only for user experience.
+
 ### Backend Integration Checklist
 
 - [ ] Replace `fetchRegions()` with `/api/v1/regions`
@@ -213,11 +233,12 @@ See `src/types/index.ts` for TypeScript interfaces matching mock data structure.
 5. **Documentation**: Add Storybook for component documentation
 6. **CI/CD**: Set up GitHub Actions for automated testing and deployment
 
-## 🐛 Known Limitations (Demo Only)
+## 🐛 Known Limitations
 
-- Map uses canvas placeholder, not real satellite tiles
+- Change/environmental overlays are still placeholders in the active MapLibre map
+- Comparison mode, drawing, confidence inspection, and map export are not yet migrated from the legacy canvas component
 - Polygon drawing stores coordinates locally only
-- Export generates canvas snapshot, not actual map export
+- Report PDF output is a basic generated document; report presentation can be expanded
 - Alert configuration doesn't send real emails/webhooks
 - Report generation simulates processing, doesn't create real PDFs
 - All data is static mock data, doesn't update in real-time

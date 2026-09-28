@@ -4,8 +4,9 @@ import {
   LayoutDashboard, Map, BarChart3, Bell, FileText, Settings,
   Globe, Shield, Zap
 } from 'lucide-react'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { useAppStore } from '@/store/useAppStore'
-import { getRecentAlerts } from '@/lib/mockData'
 
 const menuItems = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, active: true },
@@ -17,23 +18,9 @@ const menuItems = [
 ]
 
 export default function Sidebar() {
-  const {
-    setAlertConfigOpen, setReportDownloadOpen, setAnalyticsPanelOpen,
-    selectedRegion
-  } = useAppStore()
+  const { authUser } = useAppStore()
+  const pathname = usePathname()
 
-  const alerts = getRecentAlerts(selectedRegion)
-  const criticalCount = alerts.filter((a) => a.severity === 'critical').length
-
-  const handleMenuClick = (id: string) => {
-    if (id === 'alerts') {
-      setAlertConfigOpen(true)
-    } else if (id === 'reports') {
-      setReportDownloadOpen(true)
-    } else if (id === 'analytics') {
-      setAnalyticsPanelOpen(true)
-    }
-  }
 
   return (
     <aside
@@ -44,29 +31,37 @@ export default function Sidebar() {
       <nav className="flex-1 p-3 space-y-0.5 mt-1" aria-label="Navigation menu">
         {menuItems.map((item) => {
           const Icon = item.icon
+          const href = `/${item.id}`
+          const isActive = pathname === href || (item.id === 'dashboard' && pathname === '/')
           return (
-            <button
+            <Link
               key={item.id}
-              onClick={() => handleMenuClick(item.id)}
-              className={`nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all relative ${
-                item.active
-                  ? 'bg-accent/10 text-accent'
-                  : 'text-slate-400 hover:bg-white/[0.04] hover:text-slate-200'
-              }`}
+              href={href}
+              className={`nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all relative ${isActive
+                ? 'bg-accent/10 text-accent'
+                : 'text-slate-400 hover:bg-white/[0.04] hover:text-slate-200'
+                }`}
               aria-label={item.label}
               id={`sidebar-${item.id}`}
             >
               <Icon className="w-4 h-4 flex-shrink-0" />
               <span className="text-sm font-medium">{item.label}</span>
               {/* Alert badge */}
-              {item.id === 'alerts' && criticalCount > 0 && (
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-red-500/20 text-red-400 text-[10px] font-bold flex items-center justify-center">
-                  {criticalCount}
-                </span>
-              )}
-            </button>
+            </Link>
           )
         })}
+        {authUser?.role === 'Admin' && (
+          <div className="pt-4 mt-3 border-t border-white/[0.04]">
+            <div className="px-3 pb-2 text-[10px] font-semibold uppercase tracking-wider text-slate-600">Administration</div>
+            <Link
+              href="/admin/users"
+              className={`nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all ${pathname === '/admin/users' ? 'bg-accent/10 text-accent' : 'text-slate-400 hover:bg-white/[0.04] hover:text-slate-200'}`}
+            >
+              <Shield className="w-4 h-4" />
+              <span className="text-sm font-medium">Users</span>
+            </Link>
+          </div>
+        )}
       </nav>
 
       {/* Bottom section */}

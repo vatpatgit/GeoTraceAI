@@ -17,10 +17,20 @@ export const LAYER_REGISTRY: LayerDefinition[] = [
     enabled: true,
     defaultVisible: true,
     defaultOpacity: 1,
-    description: 'High-resolution satellite base imagery',
+    description: 'Sentinel-2 imagery for the selected region and date (via backend)',
   },
 
   // ─── Monitoring Layers ────────────────────────────────────────────────
+  {
+    id: 'change-detection',
+    name: 'Change Detection',
+    category: 'monitoring',
+    icon: 'Layers',
+    enabled: true,
+    defaultVisible: true,
+    defaultOpacity: 0.85,
+    description: 'AI detected land and environmental change areas',
+  },
   {
     id: 'regions',
     name: 'Monitoring Regions',

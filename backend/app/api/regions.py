@@ -6,13 +6,13 @@ from sqlalchemy import select, func
 from app.database import get_db
 from app.models import Region, User
 from app.schemas import RegionCreate, RegionUpdate, RegionResponse, RegionListResponse
-from app.auth.dependencies import get_current_user
+from app.auth.dependencies import require_authenticated_user, require_admin
 from app.utils.geojson_utils import validate_geojson_polygon, calculate_area_km2
 
 router = APIRouter()
 
 @router.get("/", response_model=RegionListResponse)
-async def list_regions(db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+async def list_regions(db: AsyncSession = Depends(get_db), current_user: User = Depends(require_authenticated_user)):
     """List all regions."""
     result = await db.execute(
         select(
@@ -41,7 +41,7 @@ async def list_regions(db: AsyncSession = Depends(get_db), current_user: User = 
     return RegionListResponse(regions=regions, total=len(regions))
 
 @router.get("/{region_id}", response_model=RegionResponse)
-async def get_region(region_id: str, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+async def get_region(region_id: str, db: AsyncSession = Depends(get_db), current_user: User = Depends(require_authenticated_user)):
     """Get single region by UUID."""
     result = await db.execute(
         select(
@@ -71,7 +71,7 @@ async def get_region(region_id: str, db: AsyncSession = Depends(get_db), current
     return region_dict
 
 @router.post("/", response_model=RegionResponse, status_code=status.HTTP_201_CREATED)
-async def create_region(body: RegionCreate, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+async def create_region(body: RegionCreate, db: AsyncSession = Depends(get_db), current_user: User = Depends(require_admin)):
     """Create a new region."""
     is_valid = validate_geojson_polygon(body.geometry)
     if not is_valid:
@@ -121,7 +121,7 @@ async def create_region(body: RegionCreate, db: AsyncSession = Depends(get_db), 
     return region_dict
 
 @router.put("/{region_id}", response_model=RegionResponse)
-async def update_region(region_id: str, body: RegionUpdate, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+async def update_region(region_id: str, body: RegionUpdate, db: AsyncSession = Depends(get_db), current_user: User = Depends(require_admin)):
     """Update a region."""
     result = await db.execute(select(Region).where(Region.id == region_id))
     region = result.scalar_one_or_none()
@@ -162,7 +162,7 @@ async def update_region(region_id: str, body: RegionUpdate, db: AsyncSession = D
     return region_dict
 
 @router.delete("/{region_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_region(region_id: str, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+async def delete_region(region_id: str, db: AsyncSession = Depends(get_db), current_user: User = Depends(require_admin)):
     """Delete a region."""
     result = await db.execute(select(Region).where(Region.id == region_id))
     region = result.scalar_one_or_none()

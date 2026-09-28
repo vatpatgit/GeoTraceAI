@@ -21,6 +21,12 @@ export interface Region {
   bbox: BoundingBox
   defaultDateRange: DateRange
   areaKm2: number
+  description?: string | null
+  riskLevel?: string
+  geometry?: {
+    type: string
+    coordinates: number[][][] | number[][][][]
+  } | null
 }
 
 export interface TimeSeriesDataPoint {
@@ -59,9 +65,14 @@ export interface ConfidenceData {
 
 export type UserRole = 'Admin' | 'Researcher' | 'Viewer'
 
+export type ViewMode = 'globe' | 'satellite' | 'map'
+
 export interface MapViewState {
+  viewMode: ViewMode
   center: [number, number] // [lon, lat]
   zoom: number
+  bearing?: number
+  pitch?: number
   selectedRegion: string | null
   currentDate: string
   dateRange: DateRange

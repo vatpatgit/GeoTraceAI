@@ -7,6 +7,8 @@
 
 # testing
 /coverage
+/test-results/
+/playwright-report/
 
 # next.js
 /.next/
@@ -14,6 +16,9 @@
 
 # production
 /build
+
+# local build output
+/.dist/
 
 # misc
 .DS_Store
@@ -25,7 +30,16 @@ yarn-debug.log*
 yarn-error.log*
 
 # local env files
+.env
 .env*.local
+
+# editor settings
+.vscode/
+
+# ML model assets and datasets
+ML/artifacts/
+ML/datasets/
+*.pth
 
 # vercel
 .vercel

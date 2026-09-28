@@ -6,25 +6,70 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useAppStore } from '@/store/useAppStore'
 
 export default function AlertConfigurator() {
-  const { alertConfigOpen, setAlertConfigOpen, alertConfig, setAlertConfig, userRole } =
+  const { alertConfigOpen, setAlertConfigOpen, alertConfig, setAlertConfig, userRole, selectedRegion } =
     useAppStore()
   const [testSuccess, setTestSuccess] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+  const [error, setError] = useState('')
 
-  // Only Admin and Researcher can configure alerts
   if (userRole === 'Viewer') {
     return null
   }
 
-  const handleTest = () => {
-    // TODO: Replace with actual API call to test alert configuration
-    // fetch('/api/v1/alerts/test', { method: 'POST', body: JSON.stringify(alertConfig) })
+  const handleTest = async () => {
+    const token = localStorage.getItem('terratrack_access_token')
+    if (!token) return
+
+    const body = {
+      region_id: selectedRegion,
+      change_type: 'deforestation',
+      threshold: alertConfig.sensitivity / 100,
+    }
+
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api/v1'}/alerts/config`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    })
+
+    if (!response.ok) {
+      setError('Alert test failed. Check your permissions and configuration.')
+      return
+    }
+    setError('')
     setTestSuccess(true)
     setTimeout(() => setTestSuccess(false), 3000)
   }
 
-  const handleSave = () => {
-    // TODO: Replace with actual API call to save alert configuration
-    // fetch('/api/v1/alerts/config', { method: 'POST', body: JSON.stringify(alertConfig) })
+  const handleSave = async () => {
+    const token = localStorage.getItem('terratrack_access_token')
+    if (!token) return
+
+    setIsSaving(true)
+
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api/v1'}/alerts/config`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        region_id: selectedRegion,
+        change_type: 'deforestation',
+        threshold: alertConfig.sensitivity / 100,
+      }),
+    })
+
+    if (!response.ok) {
+      setError('Alert configuration could not be saved.')
+      setIsSaving(false)
+      return
+    }
+    setError('')
+    setIsSaving(false)
     setAlertConfigOpen(false)
   }
 
@@ -141,6 +186,7 @@ export default function AlertConfigurator() {
                 </div>
 
                 {/* Test Button */}
+                {error && <div className="p-3 text-sm text-red-300 bg-red-500/10 border border-red-500/30 rounded-lg">{error}</div>}
                 <button
                   onClick={handleTest}
                   className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-accent/20 hover:bg-accent/30 border border-accent/30 rounded-lg text-accent transition-colors"
@@ -174,9 +220,10 @@ export default function AlertConfigurator() {
                   </button>
                   <button
                     onClick={handleSave}
-                    className="flex-1 px-4 py-2 bg-accent hover:bg-accent/80 rounded-lg text-background font-medium transition-colors"
+                    disabled={isSaving}
+                    className="flex-1 px-4 py-2 bg-accent hover:bg-accent/80 rounded-lg text-background font-medium transition-colors disabled:opacity-50"
                   >
-                    Save Configuration
+                    {isSaving ? 'Saving...' : 'Save Configuration'}
                   </button>
                 </div>
               </div>

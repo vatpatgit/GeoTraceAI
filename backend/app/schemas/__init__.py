@@ -1,4 +1,4 @@
-from .auth import LoginRequest, TokenResponse, UserResponse
+from .auth import LoginRequest, TokenResponse, UserResponse, UserCreate, UserUpdate, UserRoleUpdate, UserStatusUpdate
 from .region import RegionCreate, RegionUpdate, RegionResponse, RegionListResponse
 from .change import ChangeEventResponse, ChangeEventCreate, ChangeSummary, ChangeTimelinePoint, ChangeTimelineResponse
 from .alert import AlertConfigCreate, AlertConfigUpdate, AlertConfigResponse, AlertHistoryResponse, AlertListResponse
@@ -9,6 +9,10 @@ __all__ = [
     "LoginRequest",
     "TokenResponse",
     "UserResponse",
+    "UserCreate",
+    "UserUpdate",
+    "UserRoleUpdate",
+    "UserStatusUpdate",
     "RegionCreate",
     "RegionUpdate",
     "RegionResponse",

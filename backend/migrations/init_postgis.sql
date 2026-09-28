@@ -5,9 +5,13 @@ CREATE TABLE IF NOT EXISTS users (
     email VARCHAR(255) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
     name VARCHAR(100) NOT NULL,
-    role VARCHAR(20) DEFAULT 'admin' NOT NULL,
+    role VARCHAR(20) DEFAULT 'viewer' NOT NULL,
+    is_active BOOLEAN DEFAULT TRUE NOT NULL,
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
+
+-- Required for existing databases created before explicit user status existed.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE NOT NULL;
 
 CREATE TABLE IF NOT EXISTS regions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -63,17 +67,6 @@ CREATE INDEX IF NOT EXISTS idx_change_events_change_type ON change_events(change
 CREATE INDEX IF NOT EXISTS idx_alert_history_severity ON alert_history(severity);
 CREATE INDEX IF NOT EXISTS idx_alert_history_is_read ON alert_history(is_read);
 
-
--- Insert Default Admin
-INSERT INTO users (id, email, name, role, password_hash, created_at)
-VALUES (
-    '00000000-0000-0000-0000-000000000000',
-    'admin@terratrack.dev',
-    'Admin',
-    'admin',
-    '$2b$12$kmM5U5XEqoMYZCospKy/LuQqrvsq8nUnBnYt1N5esM4AMbCmb/5oG',
-    NOW()
-) ON CONFLICT (email) DO NOTHING;
 
 -- Insert Regions
 INSERT INTO regions (id, name, description, geometry, center_lat, center_lng, area_km2, risk_level, created_at)

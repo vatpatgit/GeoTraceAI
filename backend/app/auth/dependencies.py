@@ -1,3 +1,5 @@
+from enum import Enum
+from typing import Callable
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -10,6 +12,22 @@ import logging
 logger = logging.getLogger(__name__)
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
+
+
+class UserRole(str, Enum):
+    ADMIN = "admin"
+    USER = "user"
+    VIEWER = "viewer"
+
+
+def normalize_role(role: str) -> UserRole:
+    """Normalize legacy role names without trusting roles from the client."""
+    normalized = role.strip().lower()
+    if normalized in {"admin", "administrator"}:
+        return UserRole.ADMIN
+    if normalized in {"user", "researcher"}:
+        return UserRole.USER
+    return UserRole.VIEWER
 
 async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession = Depends(get_db)) -> User:
     """
@@ -37,5 +55,26 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession
 
     if user is None:
         raise credentials_exception
+
+    if getattr(user, "is_active", True) is False:
+        raise credentials_exception
         
     return user
+
+
+def require_role(*allowed_roles: UserRole) -> Callable:
+    """Create a dependency that enforces roles after authentication."""
+    async def dependency(current_user: User = Depends(get_current_user)) -> User:
+        if normalize_role(current_user.role) not in allowed_roles:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Insufficient permissions",
+            )
+        return current_user
+
+    return dependency
+
+
+require_authenticated_user = get_current_user
+require_admin = require_role(UserRole.ADMIN)
+require_user_or_admin = require_role(UserRole.ADMIN, UserRole.USER)

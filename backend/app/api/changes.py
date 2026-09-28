@@ -7,7 +7,7 @@ from sqlalchemy import select, func, cast, Date
 from app.database import get_db
 from app.models import ChangeEvent, User
 from app.schemas import ChangeEventCreate, ChangeEventResponse, ChangeSummary, ChangeTimelinePoint, ChangeTimelineResponse
-from app.auth.dependencies import get_current_user
+from app.auth.dependencies import require_authenticated_user, require_admin
 from app.services.alert_engine import AlertEngine
 
 router = APIRouter()
@@ -18,7 +18,7 @@ async def get_summary(
     date_from: str | None = None,
     date_to: str | None = None,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_authenticated_user)
 ):
     """Aggregated summary."""
     query = select(ChangeEvent)
@@ -82,7 +82,7 @@ async def get_timeline(
     change_type: str | None = None,
     days: int = 30,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_authenticated_user)
 ):
     """Time-series data."""
     query = select(
@@ -127,7 +127,7 @@ async def list_changes(
     limit: int = 50,
     offset: int = 0,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_authenticated_user)
 ):
     """List change events with filters."""
     query = select(
@@ -180,7 +180,7 @@ async def list_changes(
     return events
 
 @router.get("/{change_id}", response_model=ChangeEventResponse)
-async def get_change(change_id: str, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+async def get_change(change_id: str, db: AsyncSession = Depends(get_db), current_user: User = Depends(require_authenticated_user)):
     """Get single change event."""
     result = await db.execute(
         select(
@@ -211,7 +211,7 @@ async def get_change(change_id: str, db: AsyncSession = Depends(get_db), current
     return event_dict
 
 @router.post("/", response_model=ChangeEventResponse, status_code=status.HTTP_201_CREATED)
-async def create_change(body: ChangeEventCreate, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+async def create_change(body: ChangeEventCreate, db: AsyncSession = Depends(get_db), current_user: User = Depends(require_admin)):
     """Create change event."""
     geom = None
     if body.geometry:

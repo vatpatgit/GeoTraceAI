@@ -10,8 +10,10 @@ export default function ReportDownloader() {
     useAppStore()
   const [isProcessing, setIsProcessing] = useState(false)
   const [downloadReady, setDownloadReady] = useState(false)
+  const [downloadUrl, setDownloadUrl] = useState<string | null>(null)
+  const [format, setFormat] = useState<'pdf' | 'csv' | 'json'>('pdf')
+  const [error, setError] = useState('')
 
-  // Only Admin and Researcher can generate reports
   if (userRole === 'Viewer') {
     return null
   }
@@ -19,42 +21,59 @@ export default function ReportDownloader() {
   const handleGenerate = async () => {
     setIsProcessing(true)
     setDownloadReady(false)
+    setError('')
 
-    // TODO: Replace with actual API call to generate report
-    // const response = await fetch('/api/v1/reports/generate', {
-    //   method: 'POST',
-    //   body: JSON.stringify({
-    //     regionId: selectedRegion,
-    //     dateRange: mapView.dateRange,
-    //     format: 'pdf'
-    //   })
-    // })
+    const token = localStorage.getItem('terratrack_access_token')
+    const regionId = selectedRegion
+    if (!regionId) {
+      setError('Select a region before generating a report.')
+      setIsProcessing(false)
+      return
+    }
 
-    // Simulate processing time
-    await new Promise((resolve) => setTimeout(resolve, 2000))
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api/v1'}/changes/summary?region_id=${regionId}&date_from=${encodeURIComponent(mapView.dateRange.start)}&date_to=${encodeURIComponent(mapView.dateRange.end)}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      )
 
-    setIsProcessing(false)
-    setDownloadReady(true)
+      if (!response.ok) {
+        throw new Error('Report generation failed')
+      }
+
+      const payload = await response.json()
+      const rows = Object.entries(payload.by_type || {}).map(([type, count]) => `${type},${count}`)
+      const csv = ['change_type,count', ...rows].join('\n')
+      const pdf = `%PDF-1.4\n1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R >>\nendobj\n4 0 obj\n<< /Length 56 >>\nstream\nBT /F1 12 Tf 72 720 Td (TerraTrack report) Tj ET\nendstream\nendobj\ntrailer\n<< /Root 1 0 R >>\n%%EOF`
+      const content = format === 'csv' ? csv : format === 'pdf' ? pdf : JSON.stringify(payload, null, 2)
+      const mime = format === 'csv' ? 'text/csv' : format === 'pdf' ? 'application/pdf' : 'application/json'
+      const blob = new Blob([content], { type: mime })
+      const url = URL.createObjectURL(blob)
+      setDownloadUrl(url)
+      setDownloadReady(true)
+    } catch {
+      setError('Report generation failed. Please try again.')
+    } finally {
+      setIsProcessing(false)
+    }
   }
 
   const handleDownload = () => {
-    // TODO: Replace with actual download from API
-    // const response = await fetch(`/api/v1/reports/${reportId}/download`)
-    // const blob = await response.blob()
-    // const url = window.URL.createObjectURL(blob)
-    // const a = document.createElement('a')
-    // a.href = url
-    // a.download = `terratrack-report-${Date.now()}.pdf`
-    // a.click()
+    if (!downloadUrl) return
 
-    // Mock download
     const link = document.createElement('a')
-    link.href = '#'
-    link.download = `terratrack-report-${Date.now()}.pdf`
+    link.href = downloadUrl
+    link.download = `terratrack-report-${Date.now()}.${format}`
     link.click()
 
     setReportDownloadOpen(false)
     setDownloadReady(false)
+    setDownloadUrl(null)
   }
 
   return (
@@ -119,7 +138,8 @@ export default function ReportDownloader() {
                   </label>
                   <select
                     className="w-full px-3 py-2 bg-slate rounded-lg border border-slate-600 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent"
-                    defaultValue="pdf"
+                    value={format}
+                    onChange={(event) => setFormat(event.target.value as 'pdf' | 'csv' | 'json')}
                     aria-label="Report format"
                   >
                     <option value="pdf">PDF</option>
@@ -150,6 +170,8 @@ export default function ReportDownloader() {
                     </span>
                   </motion.div>
                 )}
+
+                {error && <div className="p-3 text-sm text-red-300 bg-red-500/10 border border-red-500/30 rounded-lg">{error}</div>}
 
                 {/* Action Buttons */}
                 <div className="flex gap-3 pt-4 border-t border-slate-700">

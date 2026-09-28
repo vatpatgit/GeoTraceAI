@@ -36,6 +36,8 @@ class AlertHistoryResponse(BaseModel):
     message: str
     is_read: bool
     created_at: datetime
+    region_id: UUID | None = None
+    coordinates: list[float] | None = None
 
     model_config = ConfigDict(from_attributes=True)
 

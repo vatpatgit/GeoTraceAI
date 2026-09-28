@@ -27,12 +27,12 @@ const CATEGORY_COLORS: Record<string, string> = {
 
 export default function LayerManager() {
   const [isExpanded, setIsExpanded] = useState(false)
-  
+
   // Start with all categories expanded by default or just some
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
     new Set(['base', 'monitoring', 'environmental', 'risk'])
   )
-  
+
   const layerVisibility = useAppStore(state => state.layerVisibility)
   const setLayerVisibility = useAppStore(state => state.setLayerVisibility)
   const setLayerOpacity = useAppStore(state => state.setLayerOpacity)
@@ -55,7 +55,7 @@ export default function LayerManager() {
   return (
     <div className="glass-card bg-[#0D1321]/95 backdrop-blur border border-white/[0.06] rounded-xl overflow-hidden shadow-2xl flex flex-col pointer-events-auto" style={{ minWidth: '240px' }}>
       {/* Collapsed header button */}
-      <button 
+      <button
         onClick={() => setIsExpanded(!isExpanded)}
         className="flex items-center justify-between p-3 w-full hover:bg-white/[0.04] transition-colors"
       >
@@ -63,7 +63,7 @@ export default function LayerManager() {
           <Layers size={18} className="text-slate-300" />
           <span className="text-sm font-medium text-slate-200">Map Layers</span>
         </div>
-        
+
         <div className="flex items-center gap-2">
           {!isExpanded && activeCount > 0 && (
             <div className="flex gap-1.5 items-center bg-[#33E1FF]/10 px-2 py-0.5 rounded-full border border-[#33E1FF]/20">
@@ -90,11 +90,11 @@ export default function LayerManager() {
                 // Handle category if it's string or object
                 const catId = typeof category === 'string' ? category : (category as any).id;
                 const catLabel = typeof category === 'string' ? category : (category as any).label || (category as any).name || (category as any).id;
-                
+
                 const allGrouped = getLayersByCategory()
                 const layers = allGrouped[catId as keyof typeof allGrouped]
                 if (!layers || layers.length === 0) return null
-                
+
                 const isCatExpanded = expandedCategories.has(catId)
                 const color = CATEGORY_COLORS[catId] || '#33E1FF'
 
@@ -122,17 +122,17 @@ export default function LayerManager() {
                           <div className="flex flex-col gap-1 py-1">
                             {layers.map(layer => {
                               const isVisible = layerVisibility[layer.id]?.visible ?? false;
-                              const opacity = layerVisibility[layer.id]?.opacity ?? 100;
-                              
+                              const opacity = Math.round((layerVisibility[layer.id]?.opacity ?? 1) * 100);
+
                               // Use the mapped icon or fallback
                               const Icon = ICON_MAP[layer.icon || 'Map'] || Map;
-                              
+
                               // Determine if layer is disabled placeholder
                               const isDisabled = (layer as any).disabled || (layer as any).status === 'coming_soon';
 
                               return (
                                 <div key={layer.id} className="flex flex-col">
-                                  <div 
+                                  <div
                                     className={`flex items-center justify-between p-2 rounded-lg transition-colors
                                       ${isDisabled ? 'opacity-50 grayscale cursor-not-allowed' : 'hover:bg-white/[0.04]'}`}
                                   >
@@ -147,7 +147,7 @@ export default function LayerManager() {
                                         <Lock size={14} className="text-slate-600" />
                                       </div>
                                     ) : (
-                                      <button 
+                                      <button
                                         onClick={() => setLayerVisibility(layer.id, !isVisible)}
                                         className="text-slate-400 hover:text-white transition-colors p-1 -m-1"
                                       >
@@ -167,12 +167,12 @@ export default function LayerManager() {
                                       >
                                         <div className="flex items-center gap-2 mt-1">
                                           <span className="text-[10px] text-slate-500 w-8">{opacity}%</span>
-                                          <input 
+                                          <input
                                             type="range"
                                             min="0"
                                             max="100"
                                             value={opacity}
-                                            onChange={(e) => setLayerOpacity(layer.id, parseInt(e.target.value))}
+                                            onChange={(e) => setLayerOpacity(layer.id, parseInt(e.target.value) / 100)}
                                             className="flex-1 h-1 bg-slate-700/50 rounded-lg appearance-none cursor-pointer"
                                             style={{ accentColor: color }}
                                           />

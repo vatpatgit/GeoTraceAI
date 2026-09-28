@@ -10,7 +10,7 @@ import logging
 
 from app.database import get_db
 from app.models import User, Region
-from app.auth.dependencies import get_current_user
+from app.auth.dependencies import require_authenticated_user
 from app.services.sentinel_hub import SentinelHubService
 from app.schemas.sentinel import (
     ImageryRequest, CatalogSearchRequest, CatalogSearchResponse, CatalogResult,
@@ -49,7 +49,7 @@ async def _resolve_region_geometry(db: AsyncSession, region_id: UUID) -> dict:
 @router.post("/imagery")
 async def get_imagery(
     body: ImageryRequest,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_authenticated_user),
     db: AsyncSession = Depends(get_db),
 ):
     """Fetch satellite imagery via Sentinel Hub Process API."""
@@ -81,7 +81,7 @@ async def get_imagery(
 @router.post("/search", response_model=CatalogSearchResponse)
 async def search_catalog(
     body: CatalogSearchRequest,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_authenticated_user),
     db: AsyncSession = Depends(get_db),
 ):
     """Search for available satellite images via Catalog API."""
@@ -118,7 +118,7 @@ async def search_catalog(
 @router.post("/stats", response_model=StatsResponse)
 async def get_stats(
     body: StatsRequest,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_authenticated_user),
     db: AsyncSession = Depends(get_db),
 ):
     """Get statistics via Sentinel Hub Statistical API."""
@@ -179,7 +179,7 @@ async def get_stats(
 @router.get("/ndvi/{region_id}", response_model=StatsResponse)
 async def get_ndvi(
     region_id: UUID,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_authenticated_user),
     db: AsyncSession = Depends(get_db),
 ):
     """Convenience: Get last 30 days of NDVI stats for a region."""

@@ -1,5 +1,6 @@
 """One-off script to reset the default admin password hash."""
 import asyncio
+import os
 
 from sqlalchemy import select, update
 
@@ -8,10 +9,12 @@ from app.database import async_session_maker
 from app.models import User
 
 ADMIN_EMAIL = "admin@terratrack.dev"
-ADMIN_PASSWORD = "admin123"
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD")
 
 
 async def main() -> None:
+    if not ADMIN_PASSWORD:
+        raise RuntimeError("Set ADMIN_PASSWORD in the environment before running this script")
     password_hash = hash_password(ADMIN_PASSWORD)
     async with async_session_maker() as db:
         await db.execute(

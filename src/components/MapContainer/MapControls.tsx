@@ -1,70 +1,93 @@
-'use client'
+﻿'use client'
 
-import { ZoomIn, ZoomOut, Maximize2, Home } from 'lucide-react'
-import { MAP_GL_CSS_PREFIX } from '@/services/maps/mapProvider'
+import { ZoomIn, ZoomOut, Maximize2, Compass, RotateCcw } from 'lucide-react'
 
-export default function MapControls() {
-    const handleZoomIn = () => {
-        // GL library will auto-handle zoom via NavigationControl
+interface MapControlsProps {
+  map?: any
+  onReset?: () => void
+}
+
+export default function MapControls({ map, onReset }: MapControlsProps) {
+  const handleZoomIn = () => {
+    if (map) map.zoomIn({ duration: 300 })
+  }
+
+  const handleZoomOut = () => {
+    if (map) map.zoomOut({ duration: 300 })
+  }
+
+  const handleResetNorth = () => {
+    if (map) {
+      map.resetNorthPitch({ duration: 500 })
     }
+  }
 
-    const handleZoomOut = () => {
-        // GL library will auto-handle zoom via NavigationControl
+  const handleFullscreen = () => {
+    const root = document.getElementById('dashboard-root') || document.documentElement
+    if (!document.fullscreenElement) {
+      if (root.requestFullscreen) {
+        root.requestFullscreen()
+      }
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen()
+      }
     }
+  }
 
-    const handleFullscreen = () => {
-        const container = document.querySelector(`[class*="${MAP_GL_CSS_PREFIX}"]`)
-        if (container && (container as any).requestFullscreen) {
-            ; (container as any).requestFullscreen()
-        }
-    }
+  return (
+    <div
+      aria-label="Map navigation controls"
+      className="flex flex-col gap-1.5 p-1 bg-[#0D1321]/90 backdrop-blur-md border border-white/10 rounded-xl shadow-2xl shadow-black/50"
+    >
+      <button
+        onClick={handleZoomIn}
+        className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-300 hover:text-white hover:bg-white/10 transition-colors"
+        title="Zoom In"
+        aria-label="Zoom in"
+      >
+        <ZoomIn className="w-4 h-4" />
+      </button>
 
-    const handleReset = () => {
-        // Reset to default center/zoom
-        // This would be handled through Mapbox API
-    }
+      <button
+        onClick={handleZoomOut}
+        className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-300 hover:text-white hover:bg-white/10 transition-colors"
+        title="Zoom Out"
+        aria-label="Zoom out"
+      >
+        <ZoomOut className="w-4 h-4" />
+      </button>
 
-    return (
-        <div className="absolute top-4 right-4 z-10 flex flex-col gap-2">
-            {/* Zoom Controls */}
-            <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-                <button
-                    onClick={handleZoomIn}
-                    className="w-10 h-10 flex items-center justify-center hover:bg-gray-100 transition-colors border-b border-gray-200"
-                    title="Zoom in"
-                    aria-label="Zoom in"
-                >
-                    <ZoomIn className="w-5 h-5 text-gray-700" />
-                </button>
-                <button
-                    onClick={handleZoomOut}
-                    className="w-10 h-10 flex items-center justify-center hover:bg-gray-100 transition-colors"
-                    title="Zoom out"
-                    aria-label="Zoom out"
-                >
-                    <ZoomOut className="w-5 h-5 text-gray-700" />
-                </button>
-            </div>
+      <div className="w-full h-px bg-white/10 my-0.5" />
 
-            {/* Other Controls */}
-            <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-                <button
-                    onClick={handleReset}
-                    className="w-10 h-10 flex items-center justify-center hover:bg-gray-100 transition-colors border-b border-gray-200"
-                    title="Reset view"
-                    aria-label="Reset view"
-                >
-                    <Home className="w-5 h-5 text-gray-700" />
-                </button>
-                <button
-                    onClick={handleFullscreen}
-                    className="w-10 h-10 flex items-center justify-center hover:bg-gray-100 transition-colors"
-                    title="Fullscreen"
-                    aria-label="Fullscreen"
-                >
-                    <Maximize2 className="w-5 h-5 text-gray-700" />
-                </button>
-            </div>
-        </div>
-    )
+      <button
+        onClick={handleResetNorth}
+        className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-300 hover:text-white hover:bg-white/10 transition-colors"
+        title="Reset North & Pitch"
+        aria-label="Reset orientation"
+      >
+        <Compass className="w-4 h-4" />
+      </button>
+
+      {onReset && (
+        <button
+          onClick={onReset}
+          className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-300 hover:text-white hover:bg-white/10 transition-colors"
+          title="Reset Global View"
+          aria-label="Reset global view"
+        >
+          <RotateCcw className="w-4 h-4" />
+        </button>
+      )}
+
+      <button
+        onClick={handleFullscreen}
+        className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-300 hover:text-white hover:bg-white/10 transition-colors"
+        title="Toggle Fullscreen"
+        aria-label="Toggle fullscreen"
+      >
+        <Maximize2 className="w-4 h-4" />
+      </button>
+    </div>
+  )
 }
