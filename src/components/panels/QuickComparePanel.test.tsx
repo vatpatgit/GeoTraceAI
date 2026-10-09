@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { act, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useAppStore } from '@/store/useAppStore'
@@ -14,7 +14,7 @@ const scene = (id: string, d: string) => ({ product_id: id, collection: 'c', pro
 
 beforeEach(() => {
   vi.clearAllMocks()
-  useAppStore.setState({ quickCompare: null, regions: [], system: { sentinel: [{ provider: 'cdse', configured: true, catalog: 'available', imagery: 'available', detail: '' }] } as never })
+  useAppStore.setState({ quickCompare: null, drawMode: false, drawnBox: null, regions: [], system: { sentinel: [{ provider: 'cdse', configured: true, catalog: 'available', imagery: 'available', detail: '' }] } as never })
   vi.stubGlobal('URL', Object.assign(URL, { createObjectURL: vi.fn(() => 'blob:x'), revokeObjectURL: vi.fn() }))
 })
 
@@ -42,5 +42,13 @@ describe('QuickComparePanel', () => {
     await waitFor(() => expect(m.search).toHaveBeenCalledWith(expect.objectContaining({ bbox: [-62.3, -10.9, -62.27, -10.87] })))
     expect(await screen.findByText(/No Sentinel-2 scene within/)).toBeInTheDocument()
     expect(useAppStore.getState().quickCompare).toBeNull()
+  })
+
+  it('fills the W/S/E/N fields from a rectangle drawn on the map', async () => {
+    render(<QuickComparePanel />)
+    act(() => useAppStore.getState().setDrawnBox([72.87365, 19.06321, 73.01014, 19.15533]))
+    for (const [label, v] of [['West (lon)', '72.87365'], ['South (lat)', '19.06321'], ['East (lon)', '73.01014'], ['North (lat)', '19.15533']])
+      await waitFor(() => expect(screen.getByLabelText(label)).toHaveValue(v))
+    expect(screen.getByText(/Rectangle ≈/)).toBeInTheDocument()
   })
 })

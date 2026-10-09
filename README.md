@@ -136,6 +136,9 @@ Frontend: only `NEXT_PUBLIC_API_BASE_URL` (a URL, not a secret).
 
 ### Compare dates + ML changes
 
+Instead of typing coordinates you can click the **rectangle** tool (or *Select area on the map*), drag a box on the 2D map or the 3D globe, and the
+West/South/East/North fields are filled in automatically (Esc cancels; editing the fields redraws the box). Maximum 0.5° per side.
+
 Map page -> calendar icon: enter a box (or pick a monitored region) and two dates; GeoTrace retrieves one Sentinel-2 image per date and shows
 them in the slider / side-by-side compare view. The **ML changes** switch runs the fine-tuned model on the two images (cloud, shadow and
 no-data pixels are masked first), outlines the flagged areas on the after image and shows statistics (count, area, share of the compared

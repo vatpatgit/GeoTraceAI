@@ -11,6 +11,7 @@ import { type MapRole, syncLayers, transformRequest } from './maplibreLayers'
 import { layerTileUrl } from '@/lib/layers/env'
 import { syncQuickChanges, syncQuickImage } from './quickImage'
 import { syncWeather, WEATHER_FILL } from './weatherLayer'
+import { boxFromCorners, syncDrawBox } from './drawBox'
 
 interface Props {
   role?: MapRole
@@ -39,6 +40,8 @@ export default function MapCanvas({ role = 'single', interactive = true, onMap, 
   const quickCompare = useAppStore((s) => s.quickCompare)
   const quickChanges = useAppStore((s) => s.quickChanges)
   const weatherAlerts = useAppStore((s) => s.weatherAlerts)
+  const drawMode = useAppStore((s) => s.drawMode)
+  const drawnBox = useAppStore((s) => s.drawnBox)
   const selectedWeatherId = useAppStore((s) => s.selectedWeatherId)
   const falseColor = false
 
@@ -178,6 +181,40 @@ export default function MapCanvas({ role = 'single', interactive = true, onMap, 
     syncQuickImage(map, quickCompare, role)
     syncQuickChanges(map, quickChanges.data, quickChanges.show && !!quickCompare, role)
   }, [quickCompare, quickChanges, role, ready, ctx])
+
+  // ---- select an area by dragging a rectangle (single 2D map only) -----------------------------------------------
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !ready || role !== 'single') return
+    syncDrawBox(map, drawnBox)
+  }, [drawnBox, role, ready, ctx])
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !ready || role !== 'single' || !drawMode) return
+    const canvas = map.getCanvas()
+    map.dragPan.disable(); map.boxZoom.disable(); map.doubleClickZoom.disable()
+    canvas.style.cursor = 'crosshair'
+    let start: [number, number] | null = null
+    const down = (e: MapMouseEvent) => { start = [e.lngLat.lng, e.lngLat.lat]; e.preventDefault() }
+    const move = (e: MapMouseEvent) => { if (start) syncDrawBox(map, boxFromCorners(start, [e.lngLat.lng, e.lngLat.lat])) }
+    const up = (e: MapMouseEvent) => {
+      if (!start) return
+      const s0 = start; start = null
+      const end: [number, number] = [e.lngLat.lng, e.lngLat.lat]
+      if (Math.abs(end[0] - s0[0]) > 1e-5 && Math.abs(end[1] - s0[1]) > 1e-5) {
+        const b = boxFromCorners(s0, end)
+        useAppStore.getState().setDrawnBox([+b[0].toFixed(5), +b[1].toFixed(5), +b[2].toFixed(5), +b[3].toFixed(5)])
+        useAppStore.getState().setDrawMode(false)
+      } else syncDrawBox(map, useAppStore.getState().drawnBox)
+    }
+    map.on('mousedown', down); map.on('mousemove', move); map.on('mouseup', up)
+    return () => {
+      map.off('mousedown', down); map.off('mousemove', move); map.off('mouseup', up)
+      map.dragPan.enable(); map.boxZoom.enable(); map.doubleClickZoom.enable()
+      canvas.style.cursor = ''
+      syncDrawBox(map, useAppStore.getState().drawnBox)
+    }
+  }, [drawMode, role, ready])
 
   // ---- provider weather alerts (own layer group; never mixed with imagery / change polygons) -------------------
   const wxLayer = useAppStore((s) => s.layerState['weather-alerts'])

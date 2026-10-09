@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { CalendarRange, X } from 'lucide-react'
+import { BoxSelect, CalendarRange, X } from 'lucide-react'
+import { boxSizeKm } from '@/components/map/drawBox'
 import { api, API_BASE, ApiError, authHeaders, type BBox, type Scene } from '@/lib/api'
 import { formatDate } from '@/lib/format'
 import { useAppStore } from '@/store/useAppStore'
@@ -40,6 +41,10 @@ export default function QuickComparePanel() {
   const requestFly = useAppStore((s) => s.requestFly)
   const setLeftPanel = useAppStore((s) => s.setLeftPanel)
   const provider = useAppStore((s) => s.system?.sentinel[0] ?? null)
+  const drawMode = useAppStore((s) => s.drawMode)
+  const setDrawMode = useAppStore((s) => s.setDrawMode)
+  const drawnBox = useAppStore((s) => s.drawnBox)
+  const setDrawnBox = useAppStore((s) => s.setDrawnBox)
 
   const today = iso(Date.now())
   const [b, setB] = useState({ w: '', s: '', e: '', n: '' })
@@ -57,6 +62,19 @@ export default function QuickComparePanel() {
   }, [prefill, setPrefill])
 
   const nums = [b.w, b.s, b.e, b.n].map((v) => (v.trim() === '' ? NaN : Number(v)))
+  const same = (x: number[], y: number[] | null) => !!y && x.length === 4 && x.every((v, i) => Math.abs(v - y[i]) < 1e-6)
+  useEffect(() => {
+    if (!drawnBox || same(nums, drawnBox)) return
+    setB({ w: String(drawnBox[0]), s: String(drawnBox[1]), e: String(drawnBox[2]), n: String(drawnBox[3]) })
+    setLabel('Selected on the map')
+    setError(null)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [drawnBox])
+  useEffect(() => {
+    const [w, s, e, n] = nums
+    if ([w, s, e, n].every(Number.isFinite) && w < e && s < n && w >= -180 && e <= 180 && s >= -85 && n <= 85 && !same(nums, drawnBox)) setDrawnBox([w, s, e, n])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [b.w, b.s, b.e, b.n])
   const gapDays = (toT(d2) - toT(d1)) / DAY
   const problem = useMemo(() => {
     if (nums.some((n) => !Number.isFinite(n))) return 'Enter west, south, east and north as numbers.'
@@ -134,6 +152,9 @@ export default function QuickComparePanel() {
             {regions.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
           </select>
         </Field>
+        <Button tone={drawMode ? 'accent' : 'default'} className="w-full" onClick={() => setDrawMode(!drawMode)} aria-pressed={drawMode}>
+          <BoxSelect className="h-3.5 w-3.5" aria-hidden /> {drawMode ? 'Drag on the map… (Esc to cancel)' : 'Select area on the map'}
+        </Button>
         <div>
           <div className="label mb-1">Area (decimal degrees){label ? <span className="ml-1 normal-case text-slate-500">· {label}</span> : null}</div>
           <div className="grid grid-cols-2 gap-2">
@@ -142,6 +163,12 @@ export default function QuickComparePanel() {
             ))}
           </div>
         </div>
+        {drawnBox && (() => { const k = boxSizeKm(drawnBox); return (
+          <p className="-mt-1 flex items-center justify-between text-2xs text-slate-500">
+            <span>Rectangle ≈ {k.w.toFixed(1)} × {k.h.toFixed(1)} km{(drawnBox[2] - drawnBox[0] > 0.5 || drawnBox[3] - drawnBox[1] > 0.5) ? ' (too large: max 0.5° per side)' : ''}</span>
+            <button className="focus-ring rounded px-1 text-slate-400 hover:text-slate-100" onClick={() => { setDrawnBox(null); setB({ w: '', s: '', e: '', n: '' }); setLabel(null) }}>Clear</button>
+          </p>
+        ) })()}
         <div className="grid grid-cols-2 gap-2">
           <Field label="First date" htmlFor="qc-d1"><input id="qc-d1" type="date" max={today} className={inputCls} value={d1} onChange={(e) => setD1(e.target.value)} /></Field>
           <Field label="Second date" htmlFor="qc-d2"><input id="qc-d2" type="date" max={today} className={inputCls} value={d2} onChange={(e) => setD2(e.target.value)} /></Field>

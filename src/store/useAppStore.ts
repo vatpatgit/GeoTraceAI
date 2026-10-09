@@ -135,6 +135,10 @@ interface AppState {
   setWeatherAlerts: (a: WeatherAlert[]) => void
   selectedWeatherId: string | null
   selectWeather: (id: string | null, opts?: { fly?: boolean }) => void
+  drawMode: boolean
+  setDrawMode: (on: boolean) => void
+  drawnBox: BBox | null
+  setDrawnBox: (b: BBox | null) => void
   plainCompare: PlainCompare | null
   setPlainCompare: (p: PlainCompare | null) => void
   quickChanges: QuickChanges
@@ -270,6 +274,10 @@ export const useAppStore = create<AppState>((set, get) => ({
       }
     }
   },
+  drawMode: false,
+  setDrawMode: (drawMode) => set({ drawMode }),
+  drawnBox: null,
+  setDrawnBox: (drawnBox) => set({ drawnBox }),
   plainCompare: null,
   setPlainCompare: (p) => set((st) => {
     if (st.plainCompare && st.plainCompare !== p) { URL.revokeObjectURL(st.plainCompare.before.url); URL.revokeObjectURL(st.plainCompare.after.url) }

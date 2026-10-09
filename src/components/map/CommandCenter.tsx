@@ -1,6 +1,7 @@
 'use client'
 
 import dynamic from 'next/dynamic'
+import { useEffect } from 'react'
 import Link from 'next/link'
 import { useFeatureData } from '@/hooks/useFeatureData'
 import { selectActiveAnalysis, useAppStore } from '@/store/useAppStore'
@@ -26,6 +27,14 @@ export default function CommandCenter() {
   const rightOpen = useAppStore((s) => s.rightPanelOpen)
   const analysis = useAppStore(selectActiveAnalysis)
   const quick = useAppStore((s) => s.quickCompare)
+  const drawMode = useAppStore((s) => s.drawMode)
+  const setDrawMode = useAppStore((s) => s.setDrawMode)
+  useEffect(() => {
+    if (!drawMode) return
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setDrawMode(false) }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [drawMode, setDrawMode])
   const user = useAppStore((s) => s.authUser)
   const analysesCount = useAppStore((s) => s.analyses.length)
   const featureStatus = useAppStore((s) => s.featureData.status)
@@ -44,6 +53,11 @@ export default function CommandCenter() {
           {leftPanel === 'layers' && <LayerPanel />}
           {leftPanel === 'quick' && <QuickComparePanel />}
           <WeatherAlertCard />
+          {drawMode && (
+            <div role="status" className="pointer-events-none absolute left-1/2 top-3 z-30 -translate-x-1/2 rounded-md border border-cyan-400/40 bg-ink-900/95 px-3 py-1.5 text-xs text-cyan-100">
+              Click and drag on the map to draw a rectangle. <span className="text-slate-400">Esc to cancel.</span>
+            </div>
+          )}
           <ViewSwitcher />
           <CoordinateBar />
 

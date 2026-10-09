@@ -1,6 +1,7 @@
 'use client'
 
 import { weatherFeatureCollection, WEATHER_COLOR } from '@/lib/weather'
+import { boxFromCorners } from './drawBox'
 import { useEffect, useRef, useState } from 'react'
 import { AlertTriangle, Globe2 } from 'lucide-react'
 import { analysisTileUrl, authHeaders, type FeatureCollectionLite } from '@/lib/api'
@@ -58,6 +59,8 @@ export default function GlobeView({ onSwitch2D }: { onSwitch2D: () => void }) {
   const weatherAlerts = useAppStore((s) => s.weatherAlerts)
   const selectedWeatherId = useAppStore((s) => s.selectedWeatherId)
   const wxLayer = useAppStore((s) => s.layerState['weather-alerts'])
+  const drawMode = useAppStore((s) => s.drawMode)
+  const drawnBox = useAppStore((s) => s.drawnBox)
 
   // ------------------------------------------------------------------------------------------------ init
   useEffect(() => {
@@ -155,6 +158,71 @@ export default function GlobeView({ onSwitch2D }: { onSwitch2D: () => void }) {
       viewerRef.current = null
     }
   }, [])
+
+  // ------------------------------------------------------------------------------------------------ select an area by dragging a rectangle
+  useEffect(() => {
+    const viewer = viewerRef.current
+    const Cesium = cesiumRef.current
+    if (!viewer || !Cesium || state !== 'ready' || !drawMode) return
+    const canvas = viewer.scene.canvas
+    const ctl = viewer.scene.screenSpaceCameraController
+    const prevInputs = ctl.enableInputs
+    ctl.enableInputs = false // dragging must draw, not rotate the globe
+    canvas.style.cursor = 'crosshair'
+    let start: [number, number] | null = null
+    let current: [number, number] | null = null
+    const preview = viewer.entities.add({
+      rectangle: {
+        coordinates: new Cesium.CallbackProperty(() => (start && current ? Cesium.Rectangle.fromDegrees(...boxFromCorners(start, current)) : undefined), false),
+        material: Cesium.Color.fromCssColorString('#22D3EE').withAlpha(0.18), outline: true, outlineColor: Cesium.Color.fromCssColorString('#22D3EE'), height: 0,
+      },
+    })
+    const pick = (e: PointerEvent): [number, number] | null => {
+      const r = canvas.getBoundingClientRect()
+      const ray = viewer.camera.getPickRay(new Cesium.Cartesian2(e.clientX - r.left, e.clientY - r.top))
+      const p = ray ? viewer.scene.globe.pick(ray, viewer.scene) : undefined
+      if (!p) return null
+      const c = Cesium.Cartographic.fromCartesian(p)
+      return [Cesium.Math.toDegrees(c.longitude), Cesium.Math.toDegrees(c.latitude)]
+    }
+    const down = (e: PointerEvent) => { const p = pick(e); if (!p) return; start = p; current = p; canvas.setPointerCapture(e.pointerId); viewer.scene.requestRender() }
+    const move = (e: PointerEvent) => { if (!start) return; const p = pick(e); if (p) { current = p; viewer.scene.requestRender() } }
+    const up = (e: PointerEvent) => {
+      if (!start) return
+      const end = pick(e) ?? current
+      const s0 = start
+      start = null; current = null
+      canvas.releasePointerCapture(e.pointerId)
+      if (end && Math.abs(end[0] - s0[0]) > 1e-5 && Math.abs(end[1] - s0[1]) > 1e-5) {
+        const b = boxFromCorners(s0, end)
+        useAppStore.getState().setDrawnBox([+b[0].toFixed(5), +b[1].toFixed(5), +b[2].toFixed(5), +b[3].toFixed(5)])
+        useAppStore.getState().setDrawMode(false)
+      }
+      viewer.scene.requestRender()
+    }
+    canvas.addEventListener('pointerdown', down)
+    canvas.addEventListener('pointermove', move)
+    canvas.addEventListener('pointerup', up)
+    return () => {
+      canvas.removeEventListener('pointerdown', down)
+      canvas.removeEventListener('pointermove', move)
+      canvas.removeEventListener('pointerup', up)
+      canvas.style.cursor = ''
+      if (!viewer.isDestroyed()) { ctl.enableInputs = prevInputs; viewer.entities.remove(preview); viewer.scene.requestRender() }
+    }
+  }, [drawMode, state])
+
+  // the selected rectangle stays visible until it is cleared
+  useEffect(() => {
+    const viewer = viewerRef.current
+    const Cesium = cesiumRef.current
+    if (!viewer || !Cesium || state !== 'ready' || !drawnBox) return
+    const e = viewer.entities.add({
+      rectangle: { coordinates: Cesium.Rectangle.fromDegrees(...drawnBox), material: Cesium.Color.fromCssColorString('#22D3EE').withAlpha(0.15), outline: true, outlineColor: Cesium.Color.fromCssColorString('#22D3EE'), height: 0 },
+    })
+    viewer.scene.requestRender()
+    return () => { if (!viewer.isDestroyed()) { viewer.entities.remove(e); viewer.scene.requestRender() } }
+  }, [drawnBox, state])
 
   // ------------------------------------------------------------------------------------------------ provider weather alerts
   useEffect(() => {

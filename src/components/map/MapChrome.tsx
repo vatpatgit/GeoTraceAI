@@ -1,6 +1,6 @@
 'use client'
 
-import { Box, CalendarRange, Columns2, Crosshair, Layers, Map as MapIcon, PanelBottom, PanelRight, Satellite } from 'lucide-react'
+import { BoxSelect, Box, CalendarRange, Columns2, Crosshair, Layers, Map as MapIcon, PanelBottom, PanelRight, Satellite } from 'lucide-react'
 import { formatCoord } from '@/lib/format'
 import { selectActiveAnalysis, useAppStore, type ViewMode } from '@/store/useAppStore'
 import { useCursorStore } from '@/store/useCursorStore'
@@ -41,9 +41,20 @@ export function ToolRail() {
   const setDrawerOpen = useAppStore((s) => s.setDrawerOpen)
   const requestFly = useAppStore((s) => s.requestFly)
   const analysis = useAppStore(selectActiveAnalysis)
+  const drawMode = useAppStore((s) => s.drawMode)
+  const setDrawMode = useAppStore((s) => s.setDrawMode)
+  const viewMode = useAppStore((s) => s.viewMode)
+  const setViewMode = useAppStore((s) => s.setViewMode)
+  const startDraw = () => {
+    if (drawMode) { setDrawMode(false); return }
+    if (viewMode === 'compare') setViewMode('globe') // drawing needs a single map or the globe
+    setLeftPanel('quick')
+    setDrawMode(true)
+  }
   return (
     <div className="panel absolute left-3 top-3 z-20 flex flex-col gap-0.5 rounded-md p-1" role="toolbar" aria-label="Map tools" aria-orientation="vertical">
       <IconButton label="Layers" active={leftPanel === 'layers'} onClick={() => setLeftPanel(leftPanel === 'layers' ? null : 'layers')}><Layers className="h-4 w-4" /></IconButton>
+      <IconButton label="Select an area: drag a rectangle on the map" active={drawMode} onClick={startDraw}><BoxSelect className="h-4 w-4" /></IconButton>
       <IconButton label="Compare two dates (Sentinel-2)" active={leftPanel === 'quick'} onClick={() => setLeftPanel(leftPanel === 'quick' ? null : 'quick')}><CalendarRange className="h-4 w-4" /></IconButton>
       <IconButton label="Fit to analysis area" disabled={!analysis?.bounds} onClick={() => analysis?.bounds && requestFly({ bbox: analysis.bounds })}><Crosshair className="h-4 w-4" /></IconButton>
       <IconButton label={basemap === 'satellite' ? 'Switch to dark basemap' : 'Switch to satellite basemap'} onClick={() => setBasemap(basemap === 'satellite' ? 'dark' : 'satellite')}><Satellite className="h-4 w-4" /></IconButton>
