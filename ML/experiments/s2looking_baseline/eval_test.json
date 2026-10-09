@@ -1,0 +1,18 @@
+{
+  "checkpoint": "experiments/s2looking_baseline/best_model.pth",
+  "checkpoint_epoch": 20,
+  "dataset": "S2Looking",
+  "split": "test",
+  "num_samples": 1000,
+  "image_size": 256,
+  "threshold": 0.6,
+  "device": "cuda",
+  "precision": 0.6050260813470258,
+  "recall": 0.5486312206498095,
+  "f1": 0.5754502107122098,
+  "change_iou": 0.40395238205737327,
+  "tp": 435188,
+  "fp": 284100,
+  "fn": 358037,
+  "tn": 64458675
+}

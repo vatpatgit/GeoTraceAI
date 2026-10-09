@@ -1,0 +1,18 @@
+{
+  "checkpoint": "experiments/levir-cd_baseline/best_model.pth",
+  "checkpoint_epoch": 18,
+  "dataset": "LEVIR-CD",
+  "split": "val",
+  "num_samples": 64,
+  "image_size": 256,
+  "threshold": 0.7,
+  "device": "cuda",
+  "precision": 0.6999075967894037,
+  "recall": 0.7659045076258892,
+  "f1": 0.7314202756504418,
+  "change_iou": 0.5765663286903706,
+  "tp": 134826,
+  "fp": 57808,
+  "fn": 41209,
+  "tn": 3960461
+}

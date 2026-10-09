@@ -1,51 +1,25 @@
-from datetime import datetime
+"""Query filters for change features (shared by the list endpoint, exports and analytics)."""
+from __future__ import annotations
+
+from typing import Literal
 from uuid import UUID
-from pydantic import BaseModel, ConfigDict, Field
 
-class ChangeEventResponse(BaseModel):
-    """Schema for change event response."""
-    id: UUID
-    region_id: UUID
-    change_type: str
-    confidence: float
-    area_affected_km2: float | None = None
-    detected_at: datetime
-    source: str
-    ndvi_before: float | None = None
-    ndvi_after: float | None = None
-    created_at: datetime
+from pydantic import BaseModel, Field
 
-    model_config = ConfigDict(from_attributes=True)
+from app.schemas.common import ReviewStatus, Severity
 
-class ChangeEventCreate(BaseModel):
-    """Schema for creating a change event."""
-    region_id: UUID
-    change_type: str
-    confidence: float = Field(..., ge=0, le=1)
-    area_affected_km2: float | None = None
-    detected_at: datetime | None = None
-    geometry: dict | None = None
-    source: str = 'sentinel-2'
-    ndvi_before: float | None = None
-    ndvi_after: float | None = None
+SortKey = Literal["area_desc", "area_asc", "severity_desc", "confidence_desc", "seq"]
 
-class ChangeSummary(BaseModel):
-    """Schema for change event summary."""
-    total_events: int
-    total_area_affected_km2: float
-    by_type: dict[str, int]
-    by_region: dict[str, int]
-    avg_confidence: float
 
-class ChangeTimelinePoint(BaseModel):
-    """Schema for change timeline point."""
-    date: str
-    count: int
-    area_km2: float
-    avg_confidence: float
-
-class ChangeTimelineResponse(BaseModel):
-    """Schema for change timeline response."""
-    data: list[ChangeTimelinePoint]
-    region_id: UUID | None = None
-    change_type: str | None = None
+class FeatureFilter(BaseModel):
+    severities: list[Severity] | None = None
+    categories: list[str] | None = None
+    review_status: list[ReviewStatus] | None = None
+    min_area_m2: float | None = Field(default=None, ge=0)
+    max_area_m2: float | None = Field(default=None, ge=0)
+    min_confidence: float | None = Field(default=None, ge=0, le=1)
+    min_magnitude: float | None = Field(default=None, ge=0, le=1)
+    bbox: list[float] | None = Field(default=None, min_length=4, max_length=4)
+    aoi_id: UUID | None = None
+    ids: list[UUID] | None = None
+    sort: SortKey = "area_desc"

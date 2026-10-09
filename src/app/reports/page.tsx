@@ -1,6 +1,5 @@
-import ProtectedRoute from '@/components/ProtectedRoute'
-import RoutePlaceholder from '@/components/RoutePlaceholder'
+import ReportsPage from '@/components/pages/ReportsPage'
 
-export default function ReportsPage() {
-    return <ProtectedRoute><RoutePlaceholder title="Reports" description="Generate reports for selected regions and date ranges." /></ProtectedRoute>
+export default function Page() {
+  return <ReportsPage />
 }

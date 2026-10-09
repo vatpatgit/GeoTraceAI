@@ -1,257 +1,297 @@
-# TerraTrack - AI Satellite Monitoring Dashboard
+# GeoTrace
 
-A frontend prototype for AI satellite monitoring and change detection with a MapLibre dashboard and FastAPI integration. Live API calls are used when configured; mock data is retained as an explicit development fallback.
+Bi-temporal satellite change detection for rapid urban-encroachment and disaster-impact assessment
+(FUSION 2026, problem GEOAI 04). GeoTrace takes a *before* and an *after* image of the same place — uploaded GeoTIFFs or
+Sentinel-2 scenes retrieved server-side — aligns them, detects what changed, turns the result into georeferenced
+polygons, and lets an analyst explore, review, alert on, query and export those changes on a 3D globe, a 2D map or a
+swipe-compare view.
 
-## 🚀 Quick Start
+GeoTrace was rebuilt from the earlier *TerraTrack* prototype. What was reused, refactored, rebuilt and added is recorded
+in [docs/GEOTRACE_MIGRATION_AUDIT.md](docs/GEOTRACE_MIGRATION_AUDIT.md).
 
-### Prerequisites
+> **Integrity rules the product follows.** Nothing is simulated silently: the API client has no mock fallback; seeded demo
+> data is always badged *DEMO* (and flagged inside exports/reports); a baseline detector has no confidence (the UI says
+> "n/a"); a learned-model score is labelled *uncalibrated*; severity is a configurable heuristic tier, never a probability;
+> categories are labelled by how they were inferred; AI answers are computed from stored records and any language-model
+> wording is discarded if it contains a figure that is not in those records.
 
-- Node.js 18+ and npm/yarn/pnpm
-- Python 3.11+
-- PostgreSQL with PostGIS (Docker Compose is provided)
+## Architecture
 
-### Installation
+```
+Browser (Next.js 14, React 18, TypeScript, Tailwind, Zustand, Recharts)
+  ├─ 2D map + compare  — MapLibre GL        ┐ one shared store: selection, filters, layers,
+  ├─ 3D globe          — CesiumJS (no ion)  ┘ camera requests, server-filtered detections
+  └─ pages: overview · map · analyses · changes · regions · alerts · analytics · reports · settings · admin
+        │  REST (JWT bearer)
+FastAPI (SQLAlchemy 2 async, GeoAlchemy2, Alembic migrations) ─────────────── PostgreSQL 15 + PostGIS
+  ├─ app/geo        validated GeoTIFF I/O → pair validation → metric-grid alignment (rasterio/WarpedVRT) → registration
+  │                 check → detectors (robust CVA, ΔNDVI, learned Siamese ResNet50-UNet) → MMU/morphology → polygons
+  │                 (geodesic area) → severity heuristic → GeoJSON / GeoPackage / CSV
+  ├─ app/jobs       Postgres-as-queue (SELECT … FOR UPDATE SKIP LOCKED); embedded or separate worker; cancel, retry,
+  │                 stale-job recovery, ordered progress events
+  ├─ app/providers  Sentinel-2: Copernicus Data Space (STAC + Process API) or Sentinel Hub; OAuth server-side only
+  ├─ app/layers     NASA GIBS / Hansen / JRC layer registry with real availability probing
+  ├─ app/analytics  approved query operations + deterministic NL parser + optional LLM wording (grounded)
+  └─ app/services   access control (admin/user/viewer, private/shared projects), alerts engine, reports (JSON/CSV/PDF)
+```
+
+Long geospatial work never runs inside a request handler: `POST /analyses` enqueues a job and returns `202`.
+
+## Requirements
+
+* Node.js 18+ and npm
+* Python 3.12 (3.10+ works) with GDAL wheels from PyPI (`rasterio` ships its own GDAL)
+* Docker (for PostGIS) — or any PostgreSQL 15+ with the PostGIS extension
+* Optional: an NVIDIA GPU + CUDA PyTorch for faster learned-model inference (CPU works)
+
+## Install and run (development)
+
+### 1. Database
 
 ```bash
-# Install dependencies
+docker run -d --name geotrace-db -p 55432:5432 -e POSTGRES_USER=geotrace -e POSTGRES_PASSWORD=geotrace_dev -e POSTGRES_DB=geotrace_dev postgis/postgis:15-3.4
+```
+
+### 2. Backend
+
+```bash
+cd backend
+python -m venv .venv
+.venv/Scripts/activate            # Windows;  source .venv/bin/activate on Linux/macOS
+pip install -r requirements-dev.txt
+pip install -r requirements-ml.txt  # optional: PyTorch for the learned model (add --extra-index-url for CUDA/CPU wheels)
+cp .env.example .env              # then edit: JWT_SECRET_KEY, DATABASE settings
+```
+
+Minimum `.env` for the database above (generate a real secret: `python -c "import secrets; print(secrets.token_urlsafe(48))"`):
+
+```
+JWT_SECRET_KEY=<at least 32 random characters>
+DATABASE_URL=postgresql+asyncpg://geotrace:geotrace_dev@localhost:55432/geotrace_dev
+CORS_ORIGINS=http://localhost:3000
+JOB_RUNNER=embedded
+```
+
+```bash
+python -m app.migrate                                   # apply Alembic migrations (the schema is never created implicitly in production)
+python -m app.cli create-user --email you@example.com --name "Your Name" --role admin   # prompts for a password (>= 12 chars)
+python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
+```
+
+Interactive API docs: <http://127.0.0.1:8000/docs>. Health: `/health`, readiness (database + storage): `/ready`.
+
+### 3. Frontend
+
+```bash
 npm install
-
-# Run development server
-npm run dev
+cp .env.example .env.local        # NEXT_PUBLIC_API_BASE_URL=http://localhost:8000/api/v1
+npm run dev                       # http://localhost:3000  (copies CesiumJS assets to public/cesium first)
 ```
 
-Create environment files from `.env.example` and `backend/.env.example`. Never commit `.env` files. Sentinel Hub credentials and `JWT_SECRET_KEY` are server-only values; rotate any credentials previously exposed in repository history.
+Production build: `npm run build && npm start`.
 
-Start the backend from `backend/` with `uvicorn app.main:app --reload --port 8000`, then start the frontend with `npm run dev`.
-
-Open [http://localhost:3000](http://localhost:3000) in your browser.
-
-### Build for Production
+### 4. Try it without your own imagery (optional, clearly labelled demo)
 
 ```bash
-npm run build
-npm start
+cd backend
+DEMO_MODE=true python -m app.demo.seed --owner-email you@example.com      # add --reset to rebuild
 ```
 
-## 📁 Project Structure
+This creates two synthetic scene pairs (rectangles + noise with *known* changes over Rondônia coordinates), runs the real
+pipeline on them, and adds a demo reserve region and alert rule. Everything is flagged `is_demo` and shown with a DEMO badge.
+It is not satellite data.
 
-```
-├── src/
-│   ├── app/              # Next.js app router pages
-│   ├── components/       # React components
-│   │   ├── Dashboard.tsx
-│   │   ├── MapViewer.tsx
-│   │   ├── AnalyticsPanel.tsx
-│   │   ├── TimeSlider.tsx
-│   │   ├── LayerToggle.tsx
-│   │   ├── RegionSelector.tsx
-│   │   ├── AlertConfigurator.tsx
-│   │   ├── ReportDownloader.tsx
-│   │   └── AuthMock.tsx
-│   ├── store/            # Zustand state management
-│   ├── lib/              # Utilities and mock API
-│   └── types/            # TypeScript interfaces
-├── public/
-│   └── mocks/            # Mock data files
-│       ├── regions.json
-│       ├── timeseries.json
-│       ├── changes.json
-│       ├── confidence.json
-│       └── overlays/     # Placeholder overlay images
-└── README.md
-```
+### Using it
 
-## 🎨 Features
+1. **Analyses → New analysis → Upload GeoTIFFs.** The server verifies the file *content* (not the extension), reports CRS,
+   resolution, bands and footprint (there is no date field: uploaded imagery is compared by footprint, not by date).
+   The pair is validated (overlap, CRS, resolution, bands) before you can run it.
+   *or* **Search Sentinel-2:** draw/enter an AOI and two date windows; GeoTrace queries the catalogue, selects the least
+   cloudy acquisition per window by a published rule, retrieves the bands and records provenance (provider, product id, time,
+   cloud cover). Retrieval needs server credentials (below); without them the UI says so and uploads still work.
+2. Pick a detector: *Automatic*, *Spectral baseline* (robust change-vector analysis, any sensor), *NDVI difference*
+   (needs red + NIR) or the *learned model* (see limitations).
+3. Watch job progress; open the globe / map / compare view. Detections are selectable from the list, the map and the globe
+   (shared selection); filters and exports apply server-side to exactly what you see.
+4. Review detections (confirm / reject), create alert rules, ask questions in **Analytics**, download **Reports** and exports.
 
-### Core Dashboard
-- **Left Sidebar**: Navigation (Dashboard, Regions, Analytics, Alerts, Reports, Settings)
-- **Top Header**: Search, notifications, dark mode toggle, user menu
-- **Geospatial Visualization System (Phase 5)**:
-  - **🌍 3D Globe**: Genuine interactive WebGL spherical Earth with atmospheric edge glow, smooth rotation, and dark space background.
-  - **🛰️ Satellite Mode**: 2D orthogonal top-down satellite imagery view with georeferenced Sentinel-2 and change-detection overlays.
-  - **🗺️ Map Mode**: Cartographic vector/raster map with roads, boundaries, labels, and city markers.
-  - **Unified State**: Zero-loss state switching preserving coordinates, zoom, selected AOI, date, active Sentinel overlays, and change detections.
-- **Analytics Panel**: Metric cards, time-series charts, bar charts, heatmaps
-- **Time Slider**: Dual-date range selector with play/pause animation
-- **Floating Controls**: Region selector, layer toggles, view-mode switcher, export view
+## Configuration (backend `.env`)
 
-### Interactive Features
-- **Map Interactions**: Click to view confidence, draw polygons, zoom/pan
-- **Time Scrubbing**: Animate through dates, update map overlays and charts
-- **Layer Toggles**: Show/hide satellite, change mask, confidence overlays
-- **Region Selection**: Dropdown selector + "draw on map" functionality
-- **Comparison Mode**: Side-by-side or swipe comparison of two dates
-- **Export**: Download current map view as PNG
-- **Role-Based UI**: Admin/Researcher/Viewer roles with different permissions
+See [backend/.env.example](backend/.env.example) for every variable. The important ones:
 
-### Development Mock Mode
-The shared client attempts the configured FastAPI backend and falls back to `/public/mocks/` only for unavailable non-authentication requests. HTTP 401 and 403 responses are never converted into mock data.
+| Variable | Purpose |
+|---|---|
+| `JWT_SECRET_KEY` | **Required**, ≥ 32 chars. Never commit it. |
+| `DATABASE_URL` or `POSTGRES_*` | PostGIS connection. |
+| `ENV` | `development` / `test` / `production`. Production refuses unsafe settings (weak secret, auto-migrate, demo mode). |
+| `JOB_RUNNER` | `embedded` (in-process), `external` (run `python -m app.jobs.worker`), `off`. |
+| `SENTINEL_PROVIDER` + `SENTINEL_HUB_CLIENT_ID/SECRET` | Sentinel-2 retrieval. `cdse` for Copernicus Data Space OAuth clients (`sh-<uuid>` ids), `sentinel_hub` for the commercial service. Server-side only. |
+| `MODEL_DIR`, `ML_ROOT`, `ML_DEVICE` | Learned-model weights (see below). |
+| `LLM_PROVIDER`, `LLM_API_KEY`, `LLM_MODEL`, `LLM_BASE_URL` | Optional wording for analytics answers. Analytics works without it. |
+| `FIRMS_MAP_KEY` | Optional NASA FIRMS key for active-fire hotspots. |
+| `OPENWEATHER_API_KEY` | Optional. Enables weather alerts. The Alerts product is a separate OpenWeather offering: the key's plan must include it (otherwise the provider answers HTTP 401). Server-side only. |
+| `WEATHER_LOOKAHEAD_HOURS`, `WEATHER_MAX_AOI_KM2`, `WEATHER_MAX_VERTICES`, `WEATHER_MIN_REFRESH_S`, `WEATHER_REFRESH_MINUTES`, `OPENWEATHER_TIMEOUT_S` | Weather-alert window (default 48 h, provider supports ~5 days), AOI limits, refresh guard, scheduled refresh interval (0 = off) and request timeout. |
 
-Mock files include:
-- `regions.json` - List of monitoring regions
-- `timeseries.json` - Time-series data per region
-- `changes.json` - Change polygons by date
-- `confidence.json` - Pixel confidence grid
-- `overlays/{regionId}/{date}-{layer}.png` - Raster overlay images
+Frontend: only `NEXT_PUBLIC_API_BASE_URL` (a URL, not a secret).
 
-## 🔧 Integration Guide
+### Compare dates + ML changes
 
-### Replacing Mock Data with Real API
+Map page -> calendar icon: enter a box (or pick a monitored region) and two dates; GeoTrace retrieves one Sentinel-2 image per date and shows
+them in the slider / side-by-side compare view. The **ML changes** switch runs the fine-tuned model on the two images (cloud, shadow and
+no-data pixels are masked first), outlines the flagged areas on the after image and shows statistics (count, area, share of the compared
+area, size classes). **Save as analysis** re-runs the same model on the full-quality scenes as a stored analysis (polygons, severity,
+alerts, exports, reports, analytics).
 
-1. **Update API Client** (`src/lib/mockApi.ts`):
-   ```typescript
-   // Replace:
-   const API_BASE = '/mocks'
-   
-   // With:
-   const API_BASE = process.env.NEXT_PUBLIC_API_URL || '/api/v1'
-   ```
+### Compare two ordinary images (PNG, JPEG, WebP, BMP, GIF)
 
-2. **Update Fetch Functions**:
-   - Remove `TODO` comments and implement actual API endpoints
-   - Add authentication headers if required
-   - Handle error responses appropriately
+The same upload slots also take ordinary images. They carry no coordinates, so they stay in your browser (only sent to the model endpoint), are compared **without a
+map** at `/image-compare` (slider or side by side, shared zoom and pan), and are assumed to show the same area framed identically (proportions must match within 3%;
+a slightly different size is resized with a notice). The **ML changes** switch runs the same models via `POST /imagery/plain-ml-changes` (files are checked by content,
+not by extension) and draws the detections in image-pixel space on the after image. Without the optional **Pixel size (m)** the model sees the image at its native scale
+and areas are reported as a share of the image, never as invented square metres; with it, the aerial or Sentinel-2 model is chosen from the resolution and m2 areas
+are reported. Two GeoTIFFs or two ordinary images work; mixing a GeoTIFF with an ordinary image is refused (one has coordinates, the other does not). Saving as a stored
+analysis is only available for GeoTIFFs. Plain TIFFs without georeferencing are not supported here (browsers cannot display them).
 
-3. **Update TypeScript Interfaces** (`src/types/index.ts`):
-   - Match your backend API response formats
-   - Add any additional fields returned by the API
+### Compare two uploaded GeoTIFFs
 
-### Integrating Mapbox/Leaflet
+Analyses -> New analysis -> Upload GeoTIFFs: as soon as both images are uploaded and the pair validates, the app opens the comparison **by itself** (no button; a **Compare side by side** button remains for re-opening it). It renders both
+over their common area on one pixel grid (`GET /imagery/{id}/render`) and opens the compare view (slider or side by side). The **ML changes** switch runs the
+learned model on the pair (`POST /imagery/ml-changes`): the aerial-trained `levir-cd-v1` for imagery finer than ~5 m/px, the Sentinel-2 fine-tune `oscd-s2-v1`
+for coarser imagery (the choice and reason are returned and shown). Uploaded imagery has no cloud mask (only no-data is excluded) and the model sees an 8-bit RGB
+rendering of your bands. **Save as analysis** stores the same detection as a normal analysis. Works for any pair that passes validation (same area, overlapping, RGB).
 
-The current `MapViewer` uses a canvas-based placeholder. To integrate real map tiles:
+### Weather alerts (OpenWeather Alerts API)
 
-1. **Install Mapbox GL JS**:
-   ```bash
-   npm install mapbox-gl
-   ```
+Alerts page -> **Weather alerts (OpenWeather)**: pick a saved AOI (or add one from a monitored region), choose **Get alerts**, and inspect what
+the provider returns: title, description, tags, source, severity / urgency / certainty, event time, affected area, last-retrieved time. **Map** fits
+the map to the alert area and opens a detail card; alert areas are drawn as dashed severity-coloured outlines on the 2D map and 3D globe, in their own
+layer ("Weather alerts (provider)") that is separate from imagery and change-detection polygons. The area is the provider's indicative alert geometry,
+not satellite-derived and not the extent of damage.
 
-2. **Update MapViewer.tsx**:
-   ```typescript
-   import mapboxgl from 'mapbox-gl'
-   import 'mapbox-gl/dist/mapbox-gl.css'
-   
-   // Replace canvas rendering with:
-   useEffect(() => {
-     const map = new mapboxgl.Map({
-       container: mapContainerRef.current,
-       style: 'mapbox://styles/mapbox/satellite-v9',
-       center: mapView.center,
-       zoom: mapView.zoom,
-     })
-     
-     // Add custom overlay layers
-     map.addSource('changes', {
-       type: 'raster',
-       tiles: [`${API_BASE}/tiles/{z}/{x}/{y}.png`],
-       tileSize: 256,
-     })
-     
-     return () => map.remove()
-   }, [mapView])
-   ```
+* Backend: `POST /weather-alerts/refresh`, `GET /weather-alerts`, `GET /weather-alerts/events`, `POST /weather-alerts/events/read`,
+  `PATCH /weather-alerts/aois/{id}/monitoring`, `GET /weather-alerts/status`. The key (`OPENWEATHER_API_KEY`) is read only by the server; the AOI polygon
+  is validated (single WGS84 Polygon, valid ring, vertex / area limits) and sent as the `location` GeoJSON parameter.
+* Stored per AOI (`weather_alerts`, unique per provider alert id) with change detection: an alert that is new or materially changed (title, description,
+  tags, severity, urgency, certainty, times, geometry) creates one in-app notification event; an unchanged re-fetch creates none. Alerts the provider no longer
+  returns are marked `expired` only after a successful fetch (an empty answer is valid; a failed fetch never expires anything).
+* Refresh is on demand, rate-guarded per AOI (`WEATHER_MIN_REFRESH_S`, default 300 s; "Force refresh" overrides). Scheduled refresh is opt-in: switch
+  **Monitor** on for an AOI and set `WEATHER_REFRESH_MINUTES` (>= 15) with `JOB_RUNNER=embedded`; AOIs are refreshed sequentially with a pause between calls.
+* Viewers can read stored alerts; only analysts/admins can call the provider (it is a metered service).
 
-3. **For Leaflet**:
-   ```bash
-   npm install leaflet react-leaflet
-   ```
-   See [Leaflet documentation](https://leafletjs.com/) for integration.
+### Re-training the Sentinel-2 model
 
-### Adding Overlay Images
-
-Place overlay images in `public/mocks/overlays/{regionId}/{YYYY-MM-DD}-{layer}.png`:
-- `changeMask` - Change detection overlay
-- `confidence` - Confidence heatmap overlay
-- `satellite` - Base satellite imagery (if not using Mapbox)
-
-Or update `getOverlayUrl()` in `src/lib/mockApi.ts` to point to your tile service:
-```typescript
-export function getOverlayUrl(regionId: string, date: string, layer: string): string {
-  return `/tiles/${regionId}/${date}/${layer}/{z}/{x}/{y}.png`
-}
+```bash
+# data: ML/datasets/OSCD_RGB (parquet mirror of OSCD, https://huggingface.co/datasets/blanchon/OSCD_RGB; check the upstream licence before redistributing)
+python ML/scripts/finetune_oscd.py --epochs 60          # ~20 min on a 4 GB laptop GPU; writes ML/experiments/oscd_finetune/results.json
+python ML/scripts/export_for_backend.py                 # weights-only .pt + model card (metrics, baselines, limitations) into backend/models
 ```
 
-### Roles and Permissions
+### Learned model weights
 
-- `ADMIN`: user management, region and change mutations, alert management, reports, and all read access.
-- `USER` (legacy `researcher` records are normalized): dashboard, analytics, changes, alerts, reports, and permitted alert configuration.
-- `VIEWER`: read-only dashboard, regions, analytics, changes, and alerts.
+The Siamese ResNet50-UNet checkpoints are not committed (`*.pt`/`*.pth` are git-ignored). Export weights-only files and
+model cards (with the verified held-out metrics and limitations) for the backend:
 
-The backend is authoritative for authorization. Frontend state is only for user experience.
+```bash
+python ML/scripts/export_for_backend.py --out backend/models
+```
 
-### Backend Integration Checklist
+If no weights are present the learned detector is simply unavailable; the baseline detectors are unaffected.
 
-- [ ] Replace `fetchRegions()` with `/api/v1/regions`
-- [ ] Replace `fetchTimeSeries()` with `/api/v1/timeseries?region={id}`
-- [ ] Replace `fetchChanges()` with `/api/v1/changes?region={id}&date={date}`
-- [ ] Replace `fetchConfidence()` with `/api/v1/confidence?region={id}`
-- [ ] Add authentication (JWT tokens, session cookies)
-- [ ] Implement real alert webhook/email sending
-- [ ] Implement real report generation endpoint
-- [ ] Add error handling and retry logic
-- [ ] Add loading states for all async operations
+## Tests
 
-## 🎨 Styling
+Backend (needs a throw-away PostGIS database whose name contains `test`; the suite rebuilds its schema through the real
+migrations and refuses to run against any other database name):
 
-- **Theme**: Dark space/mission-control aesthetic
-- **Colors**: Background `#0A0F1C`, Accent `#33E1FF`, Slate `#1F2937`
-- **Font**: Inter (loaded via Next.js font optimization)
-- **Spacing**: 8px grid system
-- **Animations**: Framer Motion for transitions
+```bash
+docker run -d --name geotrace-test-db -p 55432:5432 -e POSTGRES_USER=geotrace -e POSTGRES_PASSWORD=geotrace_test -e POSTGRES_DB=geotrace_test postgis/postgis:15-3.4
+cd backend
+python -m pytest -q                       # DB tests are skipped (not passed) if the database is unreachable
+python -m pytest tests/geo tests/ml -q    # geospatial / ML tests need no database
+```
 
-## 📱 Responsive Design
+Optional live-provider test (opt-in, uses real credentials and network): `tests/integration/test_sentinel_live.py`.
 
-- **Desktop-first**: Optimized for 1920×1080 and larger
-- **Tablet**: Analytics panel collapses, single-column layout
-- **Mobile**: Stacked layout, simplified controls (<640px)
+Frontend:
 
-## ♿ Accessibility
+```bash
+npm test                  # Vitest + Testing Library (store, API client, components, pages)
+npm run lint && npm run typecheck && npm run build
+npx playwright install chromium           # once
+npx playwright test e2e/access.spec.ts    # browser tests with the API stubbed (auth gating, error/empty states, no dead links)
+```
 
-- ARIA labels on all interactive controls
-- Keyboard navigation support
-- Focus indicators
-- Semantic HTML structure
+Acceptance workflow in a real browser against a real backend (sign in → upload → detect → explore → export → alert → report):
 
-## 🧪 Development Notes
+```bash
+python backend/scripts/make_e2e_fixtures.py .e2e-fixtures        # writes a synthetic before/after pair
+# backend running with CORS_ORIGINS including the frontend origin, frontend running (npm run dev)
+E2E_BASE_URL=http://localhost:3000 E2E_EMAIL=<user> E2E_PASSWORD=<password> E2E_FIXTURE_DIR=$PWD/.e2e-fixtures npx playwright test e2e/acceptance.spec.ts
+```
 
-### State Management
-Uses Zustand for global state. Store is in `src/store/useAppStore.ts`.
+The acceptance test is **skipped** when those variables or the backend are missing.
 
-### Component Architecture
-- Atomic, reusable components
-- Props-based communication
-- Clear separation of concerns
+## Docker (API + worker + PostGIS)
 
-### Mock Data Format
-See `src/types/index.ts` for TypeScript interfaces matching mock data structure.
+```bash
+cd backend
+cp .env.example .env              # set POSTGRES_PASSWORD and JWT_SECRET_KEY
+docker compose up --build -d
+docker compose exec api python -m app.migrate
+```
 
-## 📝 TODO for Production
+`docker-compose.yml` runs the API with an external worker (`JOB_RUNNER=external`); the dev override
+(`docker-compose.override.yml`, loaded automatically) switches to hot-reload with an embedded worker.
 
-1. **Authentication**: Replace `AuthMock` with real auth (NextAuth.js, Auth0, etc.)
-2. **Error Handling**: Add comprehensive error boundaries and retry logic
-3. **Performance**: Optimize map rendering, implement virtual scrolling for large datasets
-4. **Testing**: Add unit tests (Jest) and E2E tests (Playwright)
-5. **Documentation**: Add Storybook for component documentation
-6. **CI/CD**: Set up GitHub Actions for automated testing and deployment
+## API surface (all under `/api/v1`, bearer-token authenticated unless noted)
 
-## 🐛 Known Limitations
+`auth/login` · `auth/me` · `users/*` (admin) · `projects` + `projects/{id}/aois` · `imagery/upload|validate-pair|{id}|{id}/tiles` ·
+`analyses` (create 202, list, get, events, cancel, retry, delete, `features` incl. GeoJSON + server-side filters, `features/{id}/review`,
+`export` GeoJSON/GeoPackage/CSV, `artifacts/{name}`, `tiles/{layer}/{z}/{x}/{y}.png`, `evaluate-alerts`) · `alerts` + `alerts/rules` ·
+`sentinel/status|search|acquire|preview` · `layers` · `regions` · `analytics/query|overview` · `reports/analyses/{id}?format=json|csv|pdf` ·
+`system/status` · `/health`, `/ready` (unauthenticated).
 
-- Change/environmental overlays are still placeholders in the active MapLibre map
-- Comparison mode, drawing, confidence inspection, and map export are not yet migrated from the legacy canvas component
-- Polygon drawing stores coordinates locally only
-- Report PDF output is a basic generated document; report presentation can be expanded
-- Alert configuration doesn't send real emails/webhooks
-- Report generation simulates processing, doesn't create real PDFs
-- All data is static mock data, doesn't update in real-time
+Roles: **admin** (everything, user management, regions), **user** (own projects, analyses, rules), **viewer** (read-only).
+Projects are `private` or `shared`; hidden resources return `404`, not `403`.
 
-## 📄 License
+## Known limitations (read before relying on results)
 
-This is a prototype/demo. License TBD.
+* **Learned models.** The three original checkpoints were trained on 0.5-2 m aerial RGB building-change data and are **not validated on
+  Sentinel-2**. For Sentinel-2 the Compare-dates tool uses `oscd-s2-v1`, the LEVIR-CD checkpoint fine-tuned on real Sentinel-2 pairs
+  (OSCD, RGB, 10 m). On the 10 official OSCD test scenes it reaches F1 0.52 (IoU 0.35, precision 0.68, recall 0.42) versus F1 0.30 for the
+  starting checkpoint and 0.24 for a spectral change-vector baseline (threshold and epoch chosen on 3 separate validation scenes; per-scene F1
+  ranges 0.06-0.71). It was fine-tuned on only 11 image pairs, detects *urban* change (new buildings/roads), and is not validated on your area.
+  Generic analyses keep their previous default (`levir-cd-v1` / spectral baseline); `learned_siamese` with `model_id: oscd-s2-v1` selects the new model.
+* **Baseline detectors flag any radiometric/vegetation change** — including seasonal, atmospheric, shadow and harvest effects.
+  Categories (`vegetation_decrease`, …) are index-based inferences; only `building_change`/`land_cover_change` come from a model.
+  Nothing is human-verified until a user confirms it.
+* **Severity** is a configurable heuristic (area, magnitude, proximity to monitored boundaries). On the synthetic demo data most
+  polygons are large and therefore land in the top tier — that reflects the heuristic, not a measured hazard level.
+* **Sentinel-2:** one scene per date window (least-cloud rule, scene-classification masking); no multi-scene mosaicking or
+  atmospheric correction beyond the provider's L2A product. Tiled retrieval is capped by `MAX_AOI_KM2`.
+* **Environmental/risk layers** are third-party observations at coarse resolution, probed for availability at run time and shown
+  with their limitations; they are context, not part of detection. A layer that cannot be reached is shown as unavailable.
+* **Weather alerts:** the OpenWeather documentation does not publish the full example response, rate limits or the plan required, so the parser accepts
+  several plausible shapes and stores only what is present (missing severity/urgency/certainty are shown as "unknown"); a 401 may mean the plan lacks the Alerts product.
+  Only single Polygon AOIs are supported (the provider accepts Point or Polygon). Alert geometry is whatever the provider returns; it is not validated against reality.
+  Notifications are in-app only (no e-mail/SMS/webhook). Clicking an alert polygon on the 3D globe is not wired (select from the list or on the 2D map).
+* **Compare/globe rendering** uses the same server-rendered raster tiles as the 2D map; very large AOIs are limited by tile
+  rendering time. Tiles are rendered on demand and cached only by the browser (private `Cache-Control` + ETag); there is no server-side tile cache.
+* **Auth tokens** are kept in browser `localStorage` (documented trade-off of the inherited auth design); there is no refresh-token flow,
+  rate limiting or audit log UI. Put the API behind TLS and a reverse proxy with rate limits in production.
+* **Retention:** uploaded imagery and artifacts are kept until the owner deletes the analysis/asset; there is no automatic expiry yet.
+* Scale tested: synthetic 512×512 scenes and the Sentinel AOIs described in the audit. Not load-tested.
 
-## 🤝 Contributing
+## Repository layout
 
-This is a stakeholder demo. For production development, follow your team's contribution guidelines.
-
----
-
-**Built with**: Next.js 14, TypeScript, TailwindCSS, Recharts, Zustand, Framer Motion, Lucide Icons
-
+```
+src/app            Next.js routes (map, analyses, changes, regions, alerts, analytics, reports, settings, admin)
+src/components     shell/, map/ (MapLibre, Cesium, compare), panels/, analyses/, pages/, analytics/, ui/
+src/store          Zustand stores (shared map/selection/filter/layer state)
+src/lib/api        typed API client (no mock fallback)
+backend/app        api/, geo/, jobs/, providers/, layers/, analytics/, services/, models/, schemas/, demo/, ml/
+backend/alembic    migrations (0001 TerraTrack baseline, 0002 GeoTrace schema)
+backend/tests      geo/, ml/, db/ (PostGIS), providers/, integration/ (opt-in live)
+ML/                training code, evaluation and export scripts (datasets and checkpoints are git-ignored)
+e2e/               Playwright specs
+docs/              migration audit
+```

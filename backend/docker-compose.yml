@@ -1,20 +1,26 @@
+# Production-like stack: PostGIS + API + one or more workers.
+#   cp .env.example .env   # set POSTGRES_PASSWORD and JWT_SECRET_KEY (>= 32 random chars)
+#   docker compose up --build -d
+#   docker compose exec api python -m app.migrate        # (AUTO_MIGRATE=false in production)
+# Learned-model weights: python ML/scripts/export_for_backend.py --out backend/models  (mounted read-only below)
 services:
   db:
     image: postgis/postgis:15-3.4
     environment:
-      POSTGRES_DB: terratrack
-      POSTGRES_USER: terratrack
+      POSTGRES_DB: ${POSTGRES_DB:-terratrack}
+      POSTGRES_USER: ${POSTGRES_USER:-terratrack}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in backend/.env}
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
-      - ./migrations/init_postgis.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./migrations/init_postgis.sql:/docker-entrypoint-initdb.d/init.sql:ro
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U terratrack -d terratrack" ]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-terratrack} -d ${POSTGRES_DB:-terratrack}"]
       interval: 5s
       timeout: 5s
       retries: 10
+    restart: unless-stopped
 
   api:
     build: .
@@ -23,13 +29,31 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    env_file:
-      - .env
-    environment:
+    env_file: [.env]
+    environment: &app_env
       POSTGRES_HOST: db
-    volumes:
-      - ./app:/app/app
+      JOB_RUNNER: external
+      AUTO_MIGRATE: "true"   # set to "false" and run `python -m app.migrate` yourself in production
+      STORAGE_DIR: /app/storage
+      MODEL_DIR: /app/models
+      ML_ROOT: /ML
+    volumes: &app_volumes
+      - storage:/app/storage
+      - ./models:/app/models:ro
+      - ../ML:/ML:ro
+    restart: unless-stopped
+
+  worker:
+    build: .
+    command: ["python", "-m", "app.jobs.worker"]
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file: [.env]
+    environment: *app_env
+    volumes: *app_volumes
+    restart: unless-stopped
 
 volumes:
   pgdata:
-
+  storage:

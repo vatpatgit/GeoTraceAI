@@ -1,0 +1,5 @@
+# Optional: learned change detection. The spectral baseline works without these.
+# CPU:   pip install -r requirements-ml.txt --extra-index-url https://download.pytorch.org/whl/cpu
+# CUDA:  pip install torch torchvision --index-url https://download.pytorch.org/whl/cu126
+torch>=2.3
+torchvision>=0.18

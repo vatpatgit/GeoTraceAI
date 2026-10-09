@@ -1,0 +1,59 @@
+{
+  "dataset": "OSCD (Sentinel-2, RGB, 10 m)",
+  "splits": {
+    "train": 11,
+    "val": 3,
+    "test": 10
+  },
+  "init_checkpoint": "C:\\Users\\hemit\\Downloads\\Terra_Track\\Terra_Track UI\\ML\\experiments\\levir-cd_baseline\\best_model.pth",
+  "zero_shot_scale_1": {
+    "precision": 0.4849227857357939,
+    "recall": 0.21259515831955594,
+    "f1": 0.2955973743324389,
+    "change_iou": 0.17343165862389037,
+    "threshold": 0.3,
+    "note": "starting checkpoint, imagery fed at 10 m/px"
+  },
+  "zero_shot_scale_5": {
+    "precision": 0.5441801469376998,
+    "recall": 0.20766672743388423,
+    "f1": 0.30061469722408013,
+    "change_iou": 0.17689613811125152,
+    "threshold": 0.3,
+    "note": "starting checkpoint, imagery fed at 2 m/px"
+  },
+  "spectral_cva_baseline": {
+    "precision": 0.512057318321392,
+    "recall": 0.1572446048140209,
+    "f1": 0.24060367340460834,
+    "change_iou": 0.1367535385675157,
+    "threshold": 0.55
+  },
+  "finetuned": {
+    "precision": 0.6822062457874635,
+    "recall": 0.41994128629531613,
+    "f1": 0.5198697271195608,
+    "change_iou": 0.35123241287934553,
+    "threshold": 0.7,
+    "best_epoch": 5,
+    "val": {
+      "precision": 0.7093894924083604,
+      "recall": 0.6693139928672042,
+      "f1": 0.6887692948233589,
+      "change_iou": 0.5252845987392981
+    },
+    "note": "threshold and epoch chosen on the 3 validation pairs; test pairs used once"
+  },
+  "per_pair_test_f1": [
+    0.549,
+    0.239,
+    0.064,
+    0.461,
+    0.709,
+    0.531,
+    0.287,
+    0.353,
+    0.28,
+    0.701
+  ]
+}

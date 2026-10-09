@@ -1,156 +1,49 @@
-from uuid import UUID
-from datetime import date, datetime, timedelta, timezone
-from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
+from __future__ import annotations
 
+import json
+import uuid
+
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.analytics import queries
+from app.analytics.service import _jsonable, run_query
+from app.auth.dependencies import require_authenticated_user
 from app.database import get_db
-from app.models import User, Region, ChangeEvent, AlertConfig, AlertHistory
-from app.auth.dependencies import get_current_user
-from app.schemas.analytics import OverviewMetrics, RegionAnalytics, TrendPoint, TrendsResponse
+from app.models import User
+from app.schemas.analytics import AnalyticsQueryRequest, AnalyticsQueryResponse
+from app.services import access
+from app.services.reports import build_report, report_csv, report_pdf
 
 router = APIRouter()
+reports_router = APIRouter()
 
 
-@router.get("/overview", response_model=OverviewMetrics)
-async def get_overview(
-    current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
-):
-    """Get dashboard overview metrics."""
-    # Count regions
-    total_regions = await db.scalar(select(func.count(Region.id))) or 0
-    
-    # Change event stats
-    result = await db.execute(
-        select(
-            func.count(ChangeEvent.id),
-            func.coalesce(func.sum(ChangeEvent.area_affected_km2), 0.0),
-            func.coalesce(func.avg(ChangeEvent.confidence), 0.0),
-        )
-    )
-    row = result.one()
-    total_events = row[0] or 0
-    total_area = float(row[1])
-    avg_confidence = float(row[2])
-    
-    # Alert counts
-    active_alerts = await db.scalar(
-        select(func.count(AlertConfig.id)).where(AlertConfig.is_active == True)
-    ) or 0
-    
-    unread_alerts = await db.scalar(
-        select(func.count(AlertHistory.id)).where(AlertHistory.is_read == False)
-    ) or 0
-    
-    return OverviewMetrics(
-        total_regions=total_regions,
-        total_change_events=total_events,
-        total_area_affected_km2=total_area,
-        active_alerts=active_alerts,
-        unread_alerts=unread_alerts,
-        avg_confidence=round(avg_confidence, 4),
-    )
+@router.post("/query", response_model=AnalyticsQueryResponse)
+async def query(body: AnalyticsQueryRequest, db: AsyncSession = Depends(get_db), user: User = Depends(require_authenticated_user)):
+    """Answer a supported question (natural language or structured spec) from the stored results."""
+    if not body.question and not body.spec:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Provide a question or a spec.")
+    return await run_query(db, user, body)
 
 
-@router.get("/region/{region_id}", response_model=RegionAnalytics)
-async def get_region_analytics(
-    region_id: UUID,
-    current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
-):
-    """Get analytics for a specific region."""
-    # Verify region exists
-    region = await db.get(Region, region_id)
-    if not region:
-        raise HTTPException(status_code=404, detail="Region not found")
-    
-    # Stats
-    result = await db.execute(
-        select(
-            func.count(ChangeEvent.id),
-            func.coalesce(func.sum(ChangeEvent.area_affected_km2), 0.0),
-            func.coalesce(func.avg(ChangeEvent.confidence), 0.0),
-        ).where(ChangeEvent.region_id == region_id)
-    )
-    row = result.one()
-    
-    # Breakdown by type
-    type_result = await db.execute(
-        select(ChangeEvent.change_type, func.count(ChangeEvent.id))
-        .where(ChangeEvent.region_id == region_id)
-        .group_by(ChangeEvent.change_type)
-    )
-    by_type = {r[0]: r[1] for r in type_result.all()}
-    
-    # Recent events
-    recent_result = await db.execute(
-        select(ChangeEvent)
-        .where(ChangeEvent.region_id == region_id)
-        .order_by(ChangeEvent.detected_at.desc())
-        .limit(10)
-    )
-    recent_events = list(recent_result.scalars().all())
-    
-    return RegionAnalytics(
-        region_id=region_id,
-        region_name=region.name,
-        total_events=row[0] or 0,
-        total_area_affected_km2=float(row[1]),
-        avg_confidence=round(float(row[2]), 4),
-        risk_level=region.risk_level,
-        by_type=by_type,
-        recent_events=recent_events,
-    )
+@router.get("/overview")
+async def overview(project_id: uuid.UUID | None = None, db: AsyncSession = Depends(get_db), user: User = Depends(require_authenticated_user)):
+    if project_id:
+        await access.load_project(db, project_id, user)
+    return _jsonable(await queries.overview(db, user, project_id))
 
 
-@router.get("/trends", response_model=TrendsResponse)
-async def get_trends(
-    region_id: UUID | None = Query(None),
-    days: int = Query(30, ge=1, le=365),
-    metric: str = Query("changes"),
-    start_date: date | None = Query(None),
-    end_date: date | None = Query(None),
-    current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
-):
-    """Get trend data for charts."""
-    from sqlalchemy import Date, cast
-
-    if start_date and end_date and start_date > end_date:
-        raise HTTPException(status_code=422, detail="start_date must be before end_date")
-
-    range_start = (
-        datetime.combine(start_date, datetime.min.time(), tzinfo=timezone.utc)
-        if start_date
-        else datetime.now(timezone.utc) - timedelta(days=days)
-    )
-    range_end = (
-        datetime.combine(end_date, datetime.max.time(), tzinfo=timezone.utc)
-        if end_date
-        else None
-    )
-    
-    stmt = select(
-        cast(ChangeEvent.detected_at, Date).label("date"),
-        func.count(ChangeEvent.id).label("count"),
-        func.coalesce(func.sum(ChangeEvent.area_affected_km2), 0.0).label("area"),
-        func.coalesce(func.avg(ChangeEvent.confidence), 0.0).label("avg_conf"),
-    ).where(ChangeEvent.detected_at >= range_start)
-
-    if range_end:
-        stmt = stmt.where(ChangeEvent.detected_at <= range_end)
-    
-    if region_id:
-        stmt = stmt.where(ChangeEvent.region_id == region_id)
-    
-    stmt = stmt.group_by(cast(ChangeEvent.detected_at, Date)).order_by(cast(ChangeEvent.detected_at, Date))
-    
-    result = await db.execute(stmt)
-    
-    data = []
-    for row in result.all():
-        value = float(row.count) if metric == "changes" else float(row.area) if metric == "area" else float(row.avg_conf)
-        data.append(TrendPoint(date=str(row.date), value=value))
-    
-    return TrendsResponse(metric=metric, data=data, region_id=region_id)
+@reports_router.get("/analyses/{analysis_id}")
+async def analysis_report(analysis_id: uuid.UUID, format: str = Query("json", pattern="^(json|csv|pdf)$"), db: AsyncSession = Depends(get_db),
+                          user: User = Depends(require_authenticated_user)):
+    job = await access.load_analysis(db, analysis_id, user)
+    if job.status != "completed":
+        raise HTTPException(status.HTTP_409_CONFLICT, "Reports are generated from completed analyses.")
+    rep = _jsonable(await build_report(db, job))
+    stem = f"geotrace_report_{str(job.id)[:8]}"
+    if format == "json":
+        return Response(json.dumps(rep, indent=2, default=str), media_type="application/json", headers={"Content-Disposition": f'attachment; filename="{stem}.json"'})
+    if format == "csv":
+        return Response(report_csv(rep), media_type="text/csv", headers={"Content-Disposition": f'attachment; filename="{stem}.csv"'})
+    return Response(report_pdf(rep), media_type="application/pdf", headers={"Content-Disposition": f'attachment; filename="{stem}.pdf"'})

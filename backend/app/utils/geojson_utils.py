@@ -22,14 +22,7 @@ def bbox_from_geojson(geojson_dict: Dict[str, Any]) -> Tuple[float, float, float
     return geom.bounds
 
 def calculate_area_km2(geojson_dict: Dict[str, Any]) -> float:
-    """
-    Calculate approximate area in square kilometers for a GeoJSON geometry in EPSG:4326.
-    Uses a simple approximation for unprojected coordinates, suitable for estimation.
-    """
-    geom = shape(geojson_dict)
-    # 1 square degree is approximately 12321 square kilometers at the equator
-    # For a more accurate area, projection should be used.
-    # We use a rough estimate here for simplicity.
-    area_sq_degrees = geom.area
-    # Average latitude approximation factor could be applied, but this is a rough estimate
-    return area_sq_degrees * 12321.0
+    """Geodesic (WGS84 ellipsoid) area in square kilometres of a lon/lat GeoJSON polygon."""
+    from app.geo.polygonize import geodesic_area_m2
+
+    return geodesic_area_m2(shape(geojson_dict)) / 1e6

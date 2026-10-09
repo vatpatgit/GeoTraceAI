@@ -1,6 +1,5 @@
-import Dashboard from '@/components/Dashboard'
-import ProtectedRoute from '@/components/ProtectedRoute'
+import OverviewPage from '@/components/pages/OverviewPage'
 
-export default function DashboardPage() {
-    return <ProtectedRoute><Dashboard /></ProtectedRoute>
+export default function Page() {
+  return <OverviewPage />
 }

@@ -1,7 +1,5 @@
-import ProtectedRoute from '@/components/ProtectedRoute'
-import RoutePlaceholder from '@/components/RoutePlaceholder'
-import RegionDirectory from '@/components/RegionDirectory'
+import RegionsPage from '@/components/pages/RegionsPage'
 
-export default function RegionsPage() {
-    return <ProtectedRoute><div className="min-h-screen bg-background text-white"><RegionDirectory /></div></ProtectedRoute>
+export default function Page() {
+  return <RegionsPage />
 }

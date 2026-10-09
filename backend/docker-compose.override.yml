@@ -1,0 +1,13 @@
+# Development overrides (auto-loaded by `docker compose up`): hot reload, embedded worker, exposed dev origin.
+services:
+  api:
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+    environment:
+      JOB_RUNNER: embedded
+    volumes:
+      - ./app:/app/app
+      - storage:/app/storage
+      - ./models:/app/models:ro
+      - ../ML:/ML:ro
+  worker:
+    profiles: ["workers"]   # not started in dev unless `--profile workers`

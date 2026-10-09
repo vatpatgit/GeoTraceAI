@@ -1,6 +1,5 @@
-import ProtectedRoute from '@/components/ProtectedRoute'
-import RoutePlaceholder from '@/components/RoutePlaceholder'
+import ChangesPage from '@/components/pages/ChangesPage'
 
-export default function ChangesPage() {
-    return <ProtectedRoute><RoutePlaceholder title="Changes" description="Review detected environmental changes across monitored regions." /></ProtectedRoute>
+export default function Page() {
+  return <ChangesPage />
 }

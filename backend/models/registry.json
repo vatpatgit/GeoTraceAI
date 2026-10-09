@@ -1,0 +1,182 @@
+{
+  "default": "levir-cd-v1",
+  "models": [
+    {
+      "id": "levir-cd-v1",
+      "name": "Siamese ResNet50-UNet - LEVIR-CD (building change)",
+      "dataset": "LEVIR-CD",
+      "category": "building_change",
+      "description": "Trained on 0.5 m aerial imagery of US cities (1024px tiles resized to 256px, ~2 m effective).",
+      "weights": "levir-cd-v1.pt",
+      "sha256": "2e7aa4dd49587b1fb0e3edb7ec14263df4692e54da3050186de1d51ee3026126",
+      "architecture": "Siamese ResNet50 (shared encoder) + |F1-F2| multi-scale difference + U-Net decoder",
+      "parameters_millions": 43.88,
+      "input": {
+        "bands": [
+          "red",
+          "green",
+          "blue"
+        ],
+        "normalisation": "imagenet",
+        "tile_size": 256,
+        "trained_gsd_m": 2.0
+      },
+      "threshold": 0.7,
+      "trained_epoch": 18,
+      "metrics": {
+        "test": {
+          "num_samples": 128,
+          "threshold": 0.7,
+          "precision": 0.7073236701265231,
+          "recall": 0.7464519178125315,
+          "f1": 0.7263611772578711,
+          "change_iou": 0.5703039533236501
+        },
+        "val": {
+          "num_samples": 64,
+          "threshold": 0.7,
+          "precision": 0.6999075967894037,
+          "recall": 0.7659045076258892,
+          "f1": 0.7314202756504418,
+          "change_iou": 0.5765663286903706
+        }
+      },
+      "metrics_note": "Held-out 'test' split numbers were measured by scripts/evaluate.py at the checkpoint's own threshold (selected on the validation split). 'val' numbers are optimistic.",
+      "limitations": [
+        "Trained on RGB aerial/very-high-resolution imagery down-sampled to ~2 m ground resolution.",
+        "NOT validated on Sentinel-2 (10 m) or any other medium-resolution sensor; expect degraded results there.",
+        "Output probabilities are not calibrated; do not read them as confidence in a statistical sense.",
+        "A detection is an observed appearance change, not proof of construction, damage or illegal activity."
+      ]
+    },
+    {
+      "id": "s2looking-v1",
+      "name": "Siamese ResNet50-UNet - S2Looking (rural building change)",
+      "dataset": "S2Looking",
+      "category": "building_change",
+      "description": "Trained on 0.5-0.8 m side-looking satellite imagery of rural areas (resized to 256px).",
+      "weights": "s2looking-v1.pt",
+      "sha256": "2b2d7a7b072a02df3b2d90c1eb052dcf5670e9418398e97fe470bc3dd69fc9af",
+      "architecture": "Siamese ResNet50 (shared encoder) + |F1-F2| multi-scale difference + U-Net decoder",
+      "parameters_millions": 43.88,
+      "input": {
+        "bands": [
+          "red",
+          "green",
+          "blue"
+        ],
+        "normalisation": "imagenet",
+        "tile_size": 256,
+        "trained_gsd_m": 2.0
+      },
+      "threshold": 0.6,
+      "trained_epoch": 20,
+      "metrics": {
+        "test": {
+          "num_samples": 1000,
+          "threshold": 0.6,
+          "precision": 0.6050260813470258,
+          "recall": 0.5486312206498095,
+          "f1": 0.5754502107122098,
+          "change_iou": 0.40395238205737327
+        }
+      },
+      "metrics_note": "Held-out 'test' split numbers were measured by scripts/evaluate.py at the checkpoint's own threshold (selected on the validation split). 'val' numbers are optimistic.",
+      "limitations": [
+        "Trained on RGB aerial/very-high-resolution imagery down-sampled to ~2 m ground resolution.",
+        "NOT validated on Sentinel-2 (10 m) or any other medium-resolution sensor; expect degraded results there.",
+        "Output probabilities are not calibrated; do not read them as confidence in a statistical sense.",
+        "A detection is an observed appearance change, not proof of construction, damage or illegal activity."
+      ]
+    },
+    {
+      "id": "second-v1",
+      "name": "Siamese ResNet50-UNet - SECOND (land-cover change)",
+      "dataset": "SECOND",
+      "category": "land_cover_change",
+      "description": "Binary 'any land-cover class changed' target derived from SECOND semantic labels (512px resized to 256px).",
+      "weights": "second-v1.pt",
+      "sha256": "d4c6d842604a57c1ca971ca7df3ff2cf019bbcdc05b7b4f2e57481f4c58f33f8",
+      "architecture": "Siamese ResNet50 (shared encoder) + |F1-F2| multi-scale difference + U-Net decoder",
+      "parameters_millions": 43.88,
+      "input": {
+        "bands": [
+          "red",
+          "green",
+          "blue"
+        ],
+        "normalisation": "imagenet",
+        "tile_size": 256,
+        "trained_gsd_m": 2.0
+      },
+      "threshold": 0.4,
+      "trained_epoch": 14,
+      "metrics": {
+        "test": {
+          "num_samples": 1694,
+          "threshold": 0.4,
+          "precision": 0.661931544844863,
+          "recall": 0.7167608398444567,
+          "f1": 0.6882558877652204,
+          "change_iou": 0.5246876715203768
+        }
+      },
+      "metrics_note": "Held-out 'test' split numbers were measured by scripts/evaluate.py at the checkpoint's own threshold (selected on the validation split). 'val' numbers are optimistic.",
+      "limitations": [
+        "Trained on RGB aerial/very-high-resolution imagery down-sampled to ~2 m ground resolution.",
+        "NOT validated on Sentinel-2 (10 m) or any other medium-resolution sensor; expect degraded results there.",
+        "Output probabilities are not calibrated; do not read them as confidence in a statistical sense.",
+        "A detection is an observed appearance change, not proof of construction, damage or illegal activity."
+      ]
+    },
+    {
+      "id": "oscd-s2-v1",
+      "name": "Siamese ResNet50-UNet - OSCD fine-tune (Sentinel-2 urban change)",
+      "dataset": "OSCD",
+      "category": "urban_change",
+      "description": "LEVIR-CD checkpoint fine-tuned on 11 real Sentinel-2 city pairs (RGB, 10 m) of the Onera Satellite Change Detection dataset; fed at 10 m/px.",
+      "weights": "oscd-s2-v1.pt",
+      "sha256": "b3c4337cae7fd9363a74bf4f0e747d7101d8318e3d3e10cea0f654331c8bb6dc",
+      "architecture": "Siamese ResNet50 (shared encoder) + |F1-F2| multi-scale difference + U-Net decoder",
+      "parameters_millions": 43.88,
+      "input": {
+        "bands": [
+          "red",
+          "green",
+          "blue"
+        ],
+        "normalisation": "imagenet",
+        "tile_size": 256,
+        "trained_gsd_m": 10.0
+      },
+      "threshold": 0.7,
+      "trained_epoch": 5,
+      "metrics": {
+        "test": {
+          "num_samples": 10,
+          "threshold": 0.7,
+          "precision": 0.6822062457874635,
+          "recall": 0.41994128629531613,
+          "f1": 0.5198697271195608,
+          "change_iou": 0.35123241287934553
+        },
+        "val": {
+          "num_samples": 3,
+          "threshold": 0.7,
+          "precision": 0.7093894924083604,
+          "recall": 0.6693139928672042,
+          "f1": 0.6887692948233589,
+          "change_iou": 0.5252845987392981
+        }
+      },
+      "metrics_note": "Pixel-level metrics on the 10 official OSCD test pairs (whole images, 10 m), threshold chosen on 3 validation pairs. For comparison on the same pairs: the starting checkpoint (zero-shot) F1 0.30, spectral change-vector baseline F1 0.24. Small test set (10 scenes): treat differences of a few points as noise.",
+      "limitations": [
+        "Fine-tuned on only 11 image pairs (24 in the whole OSCD dataset); expect weak generalisation to other regions, seasons and land covers.",
+        "Trained to find URBAN change (new buildings and roads) in RGB Sentinel-2 imagery; it is not a vegetation, flood, fire or crop-change detector.",
+        "Validated on the 10 official OSCD test pairs only (see metrics); no validation on your area of interest.",
+        "Output probabilities are not calibrated; do not read them as confidence in a statistical sense.",
+        "A detection is an observed appearance change, not proof of construction, damage or illegal activity. Clouds, haze, shadows and seasonal colour shifts can produce false detections."
+      ]
+    }
+  ]
+}

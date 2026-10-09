@@ -1,0 +1,46 @@
+seed: 42
+
+data:
+  mode: single                 # single | mixed | cross
+  dataset: LEVIR-CD            # LEVIR-CD | SECOND | S2Looking | SYSU-CD
+  root_dir: datasets/LEVIR-CD
+  image_size: 256
+  batch_size: 8
+  num_workers: 2
+  weights:
+    LEVIR-CD: 1.0
+    SECOND: 1.0
+    S2Looking: 1.0
+    SYSU-CD: 1.0
+
+model:
+  encoder: resnet50
+  pretrained: true
+  checkpoint: null             # optional path e.g. artifacts/terratrack_landcover_resnet50.pth
+  input_channels: 3
+  num_classes: 1
+  fusion_mode: abs_diff
+
+loss:
+  type: bce_dice               # bce_dice | focal
+  bce_weight: 0.5
+  dice_weight: 0.5
+  pos_weight: 1.0
+
+optimizer:
+  type: adamw
+  encoder_lr: 0.00002
+  decoder_lr: 0.0001
+  weight_decay: 0.0001
+
+scheduler:
+  type: cosine
+  t_max: 20
+  eta_min: 0.000001
+
+training:
+  epochs: 20
+  mixed_precision: true
+  gradient_clip: 1.0
+  experiment_name: levir_baseline
+

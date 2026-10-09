@@ -48,3 +48,21 @@ ML/datasets/
 *.tsbuildinfo
 next-env.d.ts
 
+
+# GeoTrace runtime data & large model files
+backend/storage/
+backend/tests/_storage/
+backend/models/*.pt
+*.pt
+backend/.venv/
+.pytest_cache/
+
+# Cesium runtime assets are copied from node_modules at dev/build time
+/public/cesium/
+
+# browser acceptance fixtures (generated)
+.e2e-fixtures/
+.playwright-mcp/
+
+# training prediction grids (large, regenerable)
+ML/experiments/**/predictions/
