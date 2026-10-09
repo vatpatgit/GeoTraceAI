@@ -42,6 +42,15 @@ def llm_enabled() -> bool:
 async def _complete(system: str, user: str, max_tokens: int = 500) -> str:
     timeout = httpx.Timeout(settings.LLM_TIMEOUT_S, connect=8.0)
     async with httpx.AsyncClient(timeout=timeout) as client:
+        if settings.LLM_PROVIDER == "gemini":
+            base = (settings.LLM_BASE_URL or "https://generativelanguage.googleapis.com").rstrip("/")
+            r = await client.post(f"{base}/v1beta/models/{settings.LLM_MODEL or 'gemini-3.5-flash'}:generateContent",
+                                  headers={"x-goog-api-key": settings.LLM_API_KEY or "", "content-type": "application/json"},
+                                  json={"systemInstruction": {"parts": [{"text": system}]}, "contents": [{"role": "user", "parts": [{"text": user}]}],
+                                        "generationConfig": {"temperature": 0, "maxOutputTokens": max(max_tokens, 1500)}})
+            r.raise_for_status()
+            cands = r.json().get("candidates") or []
+            return "".join(p.get("text", "") for p in ((cands[0].get("content") or {}).get("parts") or [])) if cands else ""
         if settings.LLM_PROVIDER == "ollama":
             r = await client.post((settings.LLM_BASE_URL or "http://localhost:11434").rstrip("/") + "/api/chat", json={
                 "model": settings.LLM_MODEL, "stream": False, "think": False, "keep_alive": "30m", "options": {"temperature": 0, "num_predict": max_tokens},

@@ -72,7 +72,7 @@ class Settings(BaseSettings):
     ML_DEVICE: Literal["auto", "cpu", "cuda"] = "auto"
 
     # --- optional LLM narration (deterministic analytics work without it) --------------------------------------
-    LLM_PROVIDER: Literal["none", "anthropic", "openai_compatible", "ollama"] = "none"
+    LLM_PROVIDER: Literal["none", "anthropic", "openai_compatible", "ollama", "gemini"] = "none"
     LLM_API_KEY: Optional[str] = None
     LLM_MODEL: Optional[str] = None
     LLM_BASE_URL: Optional[str] = None
