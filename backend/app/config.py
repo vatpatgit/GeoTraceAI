@@ -77,6 +77,20 @@ class Settings(BaseSettings):
     LLM_MODEL: Optional[str] = None
     LLM_BASE_URL: Optional[str] = None
 
+    # --- GeoGuider (conversational copilot; reuses the LLM_* settings above, deterministic parser when no LLM is configured) ---
+    GEOGUIDER_ENABLED: bool = True
+    GEOGUIDER_MAX_AOI_KM2: float = 400.0  # largest area GeoGuider will start an analysis on without the user narrowing it
+    GEOGUIDER_MAX_PAIRS: int = 3  # consecutive date pairs (= separate analyses) one confirmation may start
+    GEOGUIDER_SEARCH_WINDOWS: int = 12  # catalogue sub-searches used to chart temporal coverage of a long period
+    GEOGUIDER_MODEL_ID: str = "oscd-s2-v1"  # learned model fine-tuned for 10 m Sentinel-2 pairs
+    GEOGUIDER_RATE_PER_MIN: int = 30
+    GEOGUIDER_MAX_MESSAGE_CHARS: int = 1000
+    # Place-name search (server-side only; the URL is configuration, never user input)
+    GEOCODER_PROVIDER: Literal["nominatim", "none"] = "nominatim"
+    GEOCODER_URL: str = "https://nominatim.openstreetmap.org"
+    GEOCODER_USER_AGENT: str = "GeoTraceAI/1.0 (self-hosted; contact: set GEOCODER_USER_AGENT)"
+    GEOCODER_TIMEOUT_S: float = 12.0
+
     # --- environmental layers ----------------------------------------------------------------------------------
     FIRMS_MAP_KEY: Optional[str] = None
     # OpenWeather Alerts API (server-side key only; the Alerts product needs a suitable OpenWeather plan)

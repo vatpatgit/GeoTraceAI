@@ -134,6 +134,10 @@ See [backend/.env.example](backend/.env.example) for every variable. The importa
 
 Frontend: only `NEXT_PUBLIC_API_BASE_URL` (a URL, not a secret).
 
+### GeoGuider (AI copilot)
+
+The **GeoGuider** button (bottom right of every page) is a chat assistant that drives the real application: *"Show me past 10 years changes in Mumbai."* resolves the place and period, searches real Sentinel-2 scenes, recommends and validates a before/after pair, asks for confirmation, runs the learned change-detection job, shows the polygons on the map/globe and explains the stored results (observed data, computed metrics, model predictions, hypotheses, limitations). It works with an optional LLM (`LLM_PROVIDER`, `LLM_API_KEY`, `LLM_MODEL`) and falls back to a built-in command parser. Not implemented: continuous multi-year trend modelling, NDVI/rainfall values. See [docs/GEOGUIDER_IMPLEMENTATION.md](docs/GEOGUIDER_IMPLEMENTATION.md) and [docs/GEOGUIDER_IMPLEMENTATION_AUDIT.md](docs/GEOGUIDER_IMPLEMENTATION_AUDIT.md).
+
 ### Compare dates + ML changes
 
 Instead of typing coordinates you can click the **rectangle** tool (or *Select area on the map*), drag a box on the 2D map or the 3D globe, and the

@@ -6,6 +6,7 @@ import type {
 } from './types'
 import type { LayerInfo } from './layers'
 import type { AoiWeatherState, WeatherAlertList, WeatherEvent, WeatherRefresh, WeatherStatus } from './weather'
+import type { GgChatResponse, GgConversation, GgStatus, GgUi, GgWorkflow, GgMessage } from './geoguider'
 import type { SentinelSearchBody, SentinelSearchResult, AcquireBody, AcquireResult, MlChangeCollection, PlainChangeCollection } from './sentinel'
 
 export * from './client'
@@ -13,6 +14,7 @@ export * from './types'
 export * from './layers'
 export * from './sentinel'
 export * from './weather'
+export * from './geoguider'
 
 /** Flatten FeatureFilters into query params (arrays are repeated, bbox is comma separated). */
 export function filterQuery(f: FeatureFilters = {}): Record<string, string | number | (string | number)[] | undefined> {
@@ -175,6 +177,16 @@ export const api = {
     /** Run the learned model on two retrieved images of one box; returns changed areas as GeoJSON. */
     mlChanges: (body: { bbox: [number, number, number, number]; before_at: string; after_at: string; model_id?: string }) =>
       apiFetch<MlChangeCollection>('/sentinel/ml-changes', { method: 'POST', body }),
+  },
+
+  // ------------------------------------------------------------------------------------------------ GeoGuider copilot (LLM key and tools stay on the server)
+  geoguider: {
+    status: () => apiFetch<GgStatus>('/geoguider/status'),
+    chat: (body: { conversation_id?: string | null; message?: string; choice?: { pending_id: string; option_id: string }; ui?: GgUi }) =>
+      apiFetch<GgChatResponse>('/geoguider/chat', { method: 'POST', body: { ...body, conversation_id: body.conversation_id ?? undefined } }),
+    conversation: (id: string) => apiFetch<GgConversation>(`/geoguider/conversations/${id}`),
+    workflow: (id: string) => apiFetch<{ workflow: GgWorkflow; new_messages: GgMessage[] }>(`/geoguider/conversations/${id}/workflow`),
+    cancel: (id: string) => apiFetch<GgChatResponse>(`/geoguider/conversations/${id}/workflow/cancel`, { method: 'POST' }),
   },
 
   // ------------------------------------------------------------------------------------------------ weather alerts (provider key stays on the server)

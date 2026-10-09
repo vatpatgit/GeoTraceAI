@@ -8,6 +8,7 @@ import AuthGate from '@/components/auth/AuthGate'
 import Sidebar from './Sidebar'
 import TopBar from './TopBar'
 import { ErrorBlock } from '@/components/ui/kit'
+import GeoGuider from '@/components/geoguider/GeoGuider'
 
 function Toasts() {
   const toasts = useAppStore((s) => s.toasts)
@@ -39,6 +40,7 @@ function Frame({ children }: { children: React.ReactNode }) {
         <main className="relative min-h-0 flex-1 overflow-hidden">{children}</main>
       </div>
       <Toasts />
+      <GeoGuider />
     </div>
   )
 }
