@@ -32,15 +32,15 @@ export default function AnalysisList() {
     <div className="mx-auto max-w-5xl space-y-4 p-5">
       <header className="flex items-end justify-between">
         <div><h1 className="text-base font-semibold text-slate-100">Analyses</h1><p className="mt-0.5 text-xs text-slate-500">Every run keeps its imagery provenance, configuration and results.</p></div>
-        {canWrite(user?.role) && <Link href="/analyses/new" className="btn border-accent/40 bg-accent/10 text-accent hover:bg-accent/20"><Plus className="h-3.5 w-3.5" aria-hidden /> New analysis</Link>}
+        {canWrite(user?.role) && <Link href="/analyses/new" className="btn border-accent-dim bg-accent-surface text-accent hover:bg-[#1a4430]"><Plus className="h-3.5 w-3.5" aria-hidden /> New analysis</Link>}
       </header>
       {analyses.length === 0 ? <EmptyBlock title="No analyses yet" hint="Upload a before/after GeoTIFF pair or search Sentinel-2 imagery to create the first one." /> : (
-        <div className="overflow-hidden rounded-md border border-white/[0.07]">
+        <div className="overflow-hidden rounded-md border border-[color:var(--line-strong)]">
           <table className="w-full text-left text-xs">
             <thead className="bg-ink-850 text-slate-500"><tr className="hairline-b"><th className="label px-3 py-2 font-normal">Name</th><th className="label py-2 font-normal">Status</th><th className="label py-2 font-normal">Dates</th><th className="label py-2 text-right font-normal">Polygons</th><th className="label py-2 text-right font-normal">Changed</th><th className="label py-2 font-normal">Created</th><th /></tr></thead>
             <tbody>
               {analyses.map((a) => (
-                <tr key={a.id} className="border-b border-white/[0.04] hover:bg-white/[0.03]">
+                <tr key={a.id} className="border-b border-[color:var(--line)] hover:bg-ink-800/70">
                   <td className="px-3 py-2"><button className="focus-ring text-left text-slate-100 hover:text-accent" onClick={() => { setActive(a.id); setDrawerTab(a.status === 'completed' ? 'detections' : 'progress'); router.push('/map') }}>{a.name}</button>
                     <div className="mt-0.5 flex items-center gap-1.5 text-2xs text-slate-500">{projects.find((p) => p.id === a.project_id)?.name}{a.is_demo && <DemoBadge />}<span>{a.method?.replace(/_/g, ' ')}</span></div></td>
                   <td className="py-2"><Chip tone={a.status === 'failed' ? 'danger' : a.status === 'completed' ? 'ok' : a.status === 'cancelled' ? 'default' : 'accent'}>{STATUS_LABEL[a.status]}</Chip>{!TERMINAL_STATUSES.includes(a.status) && <ProgressBar value={a.progress} className="mt-1 w-24" />}</td>

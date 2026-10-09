@@ -9,6 +9,7 @@ import Sidebar from './Sidebar'
 import TopBar from './TopBar'
 import { ErrorBlock } from '@/components/ui/kit'
 import GeoGuider from '@/components/geoguider/GeoGuider'
+import HazardWatcher from './HazardWatcher'
 
 function Toasts() {
   const toasts = useAppStore((s) => s.toasts)
@@ -41,6 +42,7 @@ function Frame({ children }: { children: React.ReactNode }) {
       </div>
       <Toasts />
       <GeoGuider />
+      <HazardWatcher />
     </div>
   )
 }

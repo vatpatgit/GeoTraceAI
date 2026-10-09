@@ -63,25 +63,25 @@ export default function DetectionList() {
       <div className="hairline-b flex flex-wrap items-center gap-x-3 gap-y-1.5 px-3 py-1.5">
         <div className="flex items-center gap-1" role="group" aria-label="Filter by severity">
           {SEVERITIES.map((s) => (
-            <button key={s} onClick={() => toggleSev(s)} aria-pressed={filters.severities.includes(s)} className={cn('focus-ring flex items-center gap-1 rounded border px-1.5 py-0.5 font-mono text-2xs uppercase tracking-wider transition-colors', filters.severities.includes(s) ? 'border-white/30 bg-white/10 text-slate-100' : 'border-white/[0.07] text-slate-500 hover:text-slate-200')}>
+            <button key={s} onClick={() => toggleSev(s)} aria-pressed={filters.severities.includes(s)} className={cn('focus-ring flex items-center gap-1 rounded border px-1.5 py-0.5 font-mono text-2xs uppercase tracking-wider transition-colors', filters.severities.includes(s) ? 'border-white/30 bg-white/10 text-slate-100' : 'border-[color:var(--line-strong)] text-slate-500 hover:text-slate-200')}>
               <SeverityDot severity={s} />{s}{analysis.summary?.by_severity?.[s] ? <span className="text-slate-500">{analysis.summary.by_severity[s]}</span> : null}
             </button>
           ))}
         </div>
         {categories.length > 1 && (
-          <select aria-label="Filter by category" value={filters.categories[0] ?? ''} onChange={(e) => setFilters({ categories: e.target.value ? [e.target.value] : [] })} className="focus-ring rounded border border-white/10 bg-black/30 px-1.5 py-0.5 text-2xs text-slate-300">
+          <select aria-label="Filter by category" value={filters.categories[0] ?? ''} onChange={(e) => setFilters({ categories: e.target.value ? [e.target.value] : [] })} className="focus-ring rounded border border-[color:var(--line-strong)] bg-black/30 px-1.5 py-0.5 text-2xs text-slate-300">
             <option value="">All categories</option>
             {categories.map((c) => <option key={c} value={c}>{categoryLabel(c)}</option>)}
           </select>
         )}
         <label className="flex items-center gap-1 text-2xs text-slate-500">Min area
-          <input type="number" min={0} step={100} aria-label="Minimum area in square metres" value={filters.minAreaM2 ?? ''} onChange={(e) => setFilters({ minAreaM2: e.target.value === '' ? null : Math.max(0, Number(e.target.value)) })} placeholder="m2" className="focus-ring w-16 rounded border border-white/10 bg-black/30 px-1 py-0.5 font-mono text-2xs text-slate-200" />
+          <input type="number" min={0} step={100} aria-label="Minimum area in square metres" value={filters.minAreaM2 ?? ''} onChange={(e) => setFilters({ minAreaM2: e.target.value === '' ? null : Math.max(0, Number(e.target.value)) })} placeholder="m2" className="focus-ring w-16 rounded border border-[color:var(--line-strong)] bg-black/30 px-1 py-0.5 font-mono text-2xs text-slate-200" />
         </label>
-        <select aria-label="Filter by review status" value={filters.reviewStatus[0] ?? ''} onChange={(e) => setFilters({ reviewStatus: e.target.value ? [e.target.value as 'unreviewed'] : [] })} className="focus-ring rounded border border-white/10 bg-black/30 px-1.5 py-0.5 text-2xs text-slate-300">
+        <select aria-label="Filter by review status" value={filters.reviewStatus[0] ?? ''} onChange={(e) => setFilters({ reviewStatus: e.target.value ? [e.target.value as 'unreviewed'] : [] })} className="focus-ring rounded border border-[color:var(--line-strong)] bg-black/30 px-1.5 py-0.5 text-2xs text-slate-300">
           <option value="">Any review state</option><option value="unreviewed">Needs review</option><option value="confirmed">Confirmed</option><option value="rejected">Rejected</option>
         </select>
         <span className="flex items-center gap-1 text-2xs text-slate-500"><ArrowDownAZ className="h-3 w-3" aria-hidden />
-          <select aria-label="Sort detections" value={sort} onChange={(e) => setSort(e.target.value as Sort)} className="focus-ring rounded border border-white/10 bg-black/30 px-1.5 py-0.5 text-2xs text-slate-300">{SORTS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}</select>
+          <select aria-label="Sort detections" value={sort} onChange={(e) => setSort(e.target.value as Sort)} className="focus-ring rounded border border-[color:var(--line-strong)] bg-black/30 px-1.5 py-0.5 text-2xs text-slate-300">{SORTS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}</select>
         </span>
         {hasActiveFilters(filters) && <Button tone="ghost" className="px-1.5 py-0.5 text-2xs" onClick={resetFilters}><FilterX className="h-3 w-3" aria-hidden /> Clear</Button>}
         <span className="ml-auto font-mono text-2xs text-slate-500" aria-live="polite">{total.toLocaleString('en-US')} detection{total === 1 ? '' : 's'}{hasActiveFilters(filters) ? ' (filtered)' : ''}</span>
@@ -102,7 +102,7 @@ export default function DetectionList() {
             <tbody>
               {items.map((f) => (
                 <tr key={f.id} role="option" aria-selected={f.id === selectedId} onClick={() => select(f)} onMouseEnter={() => setHovered(f.id)} onMouseLeave={() => setHovered(null)}
-                  className={cn('cursor-pointer border-b border-white/[0.04] hover:bg-white/[0.05]', f.id === selectedId && 'bg-accent/[0.09]')}>
+                  className={cn('cursor-pointer border-b border-[color:var(--line)] hover:bg-ink-700', f.id === selectedId && 'bg-accent/[0.09]')}>
                   <td className="py-1 pl-3 font-mono text-slate-500">{f.seq}</td>
                   <td className="py-1"><SeverityBadge severity={f.severity} /></td>
                   <td className="py-1 text-slate-300">{categoryLabel(f.category)}</td>

@@ -12,7 +12,7 @@ export function baseStyle(initial: 'satellite' | 'dark') {
       dark: { type: 'raster' as const, tiles: CARTO_DARK_MATTER.tiles, tileSize: CARTO_DARK_MATTER.tileSize, maxzoom: CARTO_DARK_MATTER.maxzoom, attribution: CARTO_DARK_MATTER.attribution },
     },
     layers: [
-      { id: 'bg', type: 'background' as const, paint: { 'background-color': '#04070c' } },
+      { id: 'bg', type: 'background' as const, paint: { 'background-color': '#080d0a' } },
       { id: DARK_LAYER, type: 'raster' as const, source: 'dark', layout: { visibility: initial === 'dark' ? ('visible' as const) : ('none' as const) } },
       { id: SATELLITE_LAYER, type: 'raster' as const, source: 'satellite', layout: { visibility: initial === 'satellite' ? ('visible' as const) : ('none' as const) } },
     ],

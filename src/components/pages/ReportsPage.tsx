@@ -22,7 +22,7 @@ function Row({ a }: { a: Analysis }) {
     <Button key={f} loading={busy === f} onClick={() => void run(f, () => api.analyses.export(a.id, f))}><Download className="h-3.5 w-3.5" aria-hidden /> {label}</Button>
   )
   return (
-    <li className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.05] px-3 py-3 last:border-0">
+    <li className="flex flex-wrap items-center justify-between gap-3 border-b border-[color:var(--line)] px-3 py-3 last:border-0">
       <div className="min-w-0">
         <div className="flex items-center gap-2 text-xs text-slate-100">{a.name}{a.is_demo && <DemoBadge />}</div>
         <div className="mt-0.5 text-2xs text-slate-500">{formatDate(a.before_date)} → {formatDate(a.after_date)} · {a.summary?.feature_count ?? 0} polygons · {formatArea(a.summary?.total_changed_area_m2)} · {a.method?.replace(/_/g, ' ')}</div>

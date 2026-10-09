@@ -23,9 +23,9 @@ export default function PageFrame({ title, subtitle, actions, children, wide = f
 
 export function Card({ title, children, className, action }: { title?: string; children: ReactNode; className?: string; action?: ReactNode }) {
   return (
-    <section className={cn('rounded-md border border-white/[0.07] bg-ink-900/60', className)}>
+    <section className={cn('rounded-md border border-[color:var(--line-strong)] bg-ink-900/60', className)}>
       {title && (
-        <header className="flex items-center justify-between gap-2 border-b border-white/[0.06] px-3 py-2">
+        <header className="flex items-center justify-between gap-2 border-b border-[color:var(--line)] px-3 py-2">
           <h2 className="label">{title}</h2>
           {action}
         </header>

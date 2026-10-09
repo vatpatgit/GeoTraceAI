@@ -9,7 +9,8 @@ import { useAppStore } from '@/store/useAppStore'
 import { Button, Chip, Field, inputCls, Segmented } from '@/components/ui/kit'
 
 const MAX_SPAN_DEG = 0.5
-const MAX_CLOUD_PCT = 40
+const MAX_CLOUD_PCT = 10 // images used for the ML comparison must be clear: at most 10% cloud
+const WINDOW_STEPS_DAYS = [10, 30, 60] // widen the search around a date until a clear scene exists
 const DAY = 86_400_000
 const iso = (t: number) => new Date(t).toISOString().slice(0, 10)
 const toT = (d: string) => Date.parse(`${d}T00:00:00Z`)
@@ -52,6 +53,7 @@ export default function QuickComparePanel() {
   const [d2, setD2] = useState(iso(Date.now() - 20 * DAY))
   const [busy, setBusy] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [notes, setNotes] = useState<string[]>([])
   const [label, setLabel] = useState<string | null>(null)
 
   useEffect(() => {
@@ -93,24 +95,40 @@ export default function QuickComparePanel() {
   async function run() {
     if (problem) return
     const bbox = nums as BBox
-    setError(null); setBusy('Searching Sentinel-2 scenes…')
+    setError(null); setNotes([]); setBusy('Searching Sentinel-2 scenes…')
     try {
-      const win = Math.max(1, Math.min(10, Math.floor((gapDays - 1) / 2)))
-      const r = await api.sentinel.search({
-        bbox, max_cloud_cover_pct: MAX_CLOUD_PCT, limit: 40,
-        before: { start: iso(toT(d1) - win * DAY), end: iso(toT(d1) + win * DAY) },
-        after: { start: iso(toT(d2) - win * DAY), end: iso(toT(d2) + win * DAY) },
-      })
+      const maxWin = Math.max(1, Math.floor((gapDays - 1) / 2)) // the two search windows may never overlap
+      const steps = Array.from(new Set(WINDOW_STEPS_DAYS.map((w) => Math.min(w, maxWin))))
       const closest = (list: Scene[], d: string, suggested: string | null) => {
         const ok = list.filter((x) => x.coverage_of_aoi_pct === null || x.coverage_of_aoi_pct >= 90)
         const pool = ok.length ? ok : list
         return pool.slice().sort((a, c) => Math.abs(Date.parse(a.acquired_at) - toT(d)) - Math.abs(Date.parse(c.acquired_at) - toT(d)) || (a.cloud_cover_pct ?? 100) - (c.cloud_cover_pct ?? 100))[0]
           ?? list.find((x) => x.product_id === suggested)
       }
-      const sb = closest(r.before, d1, r.suggested_before)
-      const sa = closest(r.after, d2, r.suggested_after)
-      if (!sb) throw new Error(`No Sentinel-2 scene within ±${win} days of ${d1} with at most ${MAX_CLOUD_PCT}% cloud. Try another date.`)
-      if (!sa) throw new Error(`No Sentinel-2 scene within ±${win} days of ${d2} with at most ${MAX_CLOUD_PCT}% cloud. Try another date.`)
+      let sb: Scene | undefined
+      let sa: Scene | undefined
+      let win = steps[0]
+      for (const w of steps) {
+        win = w
+        setBusy(w === steps[0] ? 'Searching Sentinel-2 scenes…' : `No clear image yet; widening the search to ±${w} days…`)
+        const r = await api.sentinel.search({
+          bbox, max_cloud_cover_pct: MAX_CLOUD_PCT, limit: 40,
+          before: { start: iso(toT(d1) - w * DAY), end: iso(toT(d1) + w * DAY) },
+          after: { start: iso(toT(d2) - w * DAY), end: iso(toT(d2) + w * DAY) },
+        })
+        sb = closest(r.before, d1, r.suggested_before)
+        sa = closest(r.after, d2, r.suggested_after)
+        if (sb && sa) break
+      }
+      if (!sb) throw new Error(`No Sentinel-2 scene with at most ${MAX_CLOUD_PCT}% cloud within ±${win} days of ${d1}. Try another date.`)
+      if (!sa) throw new Error(`No Sentinel-2 scene with at most ${MAX_CLOUD_PCT}% cloud within ±${win} days of ${d2}. Try another date.`)
+      const shift = (name: string, sc: Scene, d: string) => {
+        const days = Math.round((Date.parse(sc.acquired_at) - toT(d)) / DAY)
+        return days === 0 ? null : `${name}: the closest image with at most ${MAX_CLOUD_PCT}% cloud is from ${formatDate(sc.acquired_at)}, ${Math.abs(days)} day${Math.abs(days) === 1 ? '' : 's'} ${days < 0 ? 'before' : 'after'} the date you chose.`
+      }
+      setNotes([shift('Before', sb, d1), shift('After', sa, d2)].filter((x): x is string => !!x))
+      // show the dates actually used in the calendars (the closest clear acquisition), so the inputs match the images on screen
+      setD1(sb.acquired_at.slice(0, 10)); setD2(sa.acquired_at.slice(0, 10))
       setBusy(`Downloading the ${formatDate(sb.acquired_at)} image…`)
       const ub = await fetchPreview(sb, bbox)
       setBusy(`Downloading the ${formatDate(sa.acquired_at)} image…`)
@@ -173,21 +191,22 @@ export default function QuickComparePanel() {
           <Field label="First date" htmlFor="qc-d1"><input id="qc-d1" type="date" max={today} className={inputCls} value={d1} onChange={(e) => setD1(e.target.value)} /></Field>
           <Field label="Second date" htmlFor="qc-d2"><input id="qc-d2" type="date" max={today} className={inputCls} value={d2} onChange={(e) => setD2(e.target.value)} /></Field>
         </div>
-        <p className="text-2xs text-slate-500">The scene closest to each date (within about ±10 days, at most 40% cloud) is used. Sentinel-2 revisits every ~5 days, so an exact-day image may not exist.</p>
+        <p className="text-2xs text-slate-500">Only clear images are used (at most {MAX_CLOUD_PCT}% cloud). If the chosen date is cloudy or has no pass, the closest clear date is picked automatically, searching up to ±60 days when needed. Sentinel-2 revisits every ~5 days.</p>
         {problem && (b.w || b.s || b.e || b.n) && <p role="alert" className="text-2xs text-amber-300">{problem}</p>}
         <Button tone="accent" className="w-full py-2" disabled={!!problem} loading={!!busy} onClick={() => void run()}>Retrieve images and compare</Button>
         {busy && <p role="status" className="text-2xs text-slate-400">{busy}</p>}
         {error && <p role="alert" className="rounded border border-red-500/30 bg-red-500/[0.07] px-2.5 py-1.5 text-xs text-red-300">{error}</p>}
 
         {qc && (
-          <div className="space-y-2 rounded-md border border-white/[0.08] bg-black/20 p-2.5 text-xs">
-            <div className="flex items-center justify-between"><span className="label">Retrieved (Sentinel-2 L2A, true colour)</span><Button tone="ghost" className="px-1.5 py-0.5" onClick={() => setQc(null)}>Clear</Button></div>
+          <div className="space-y-2 rounded-md border border-[color:var(--line-strong)] bg-black/20 p-2.5 text-xs">
+            <div className="flex items-center justify-between"><span className="label">Retrieved (Sentinel-2 L2A, true colour)</span><Button tone="ghost" className="px-1.5 py-0.5" onClick={() => { setQc(null); setNotes([]) }}>Clear</Button></div>
             {([['Before', qc.before], ['After', qc.after]] as const).map(([name, sc]) => (
               <div key={name} className="flex items-center justify-between gap-2 font-mono text-2xs text-slate-300">
                 <span>{name}: {formatDate(sc.date)}</span>
                 <span className="text-slate-500">{sc.cloud === null ? 'cloud ?' : `${sc.cloud.toFixed(1)}% cloud`}</span>
               </div>
             ))}
+            {notes.length > 0 && <ul role="status" className="space-y-1 text-2xs text-amber-200">{notes.map((n) => <li key={n}>{n}</li>)}</ul>}
             <Chip title="Product ids are kept for provenance">{qc.before.productId.slice(0, 24)}…</Chip>
             {viewMode === 'globe' && (
               <Segmented label="Globe image" size="sm" value={quickShow} onChange={setQuickShow} options={[{ value: 'before', label: 'Before' }, { value: 'after', label: 'After' }]} />

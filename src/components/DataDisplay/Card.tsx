@@ -22,7 +22,7 @@ export default function Card({
     return (
         <div
             onClick={onClick}
-            className={`bg-slate-800 border border-slate-700 rounded-lg overflow-hidden ${hoverable && onClick ? 'cursor-pointer hover:border-accent/40 transition-colors' : ''
+            className={`bg-slate-800 border border-slate-700 rounded-lg overflow-hidden ${hoverable && onClick ? 'cursor-pointer hover:border-accent-dim transition-colors' : ''
                 } ${className}`}
         >
             {header && (

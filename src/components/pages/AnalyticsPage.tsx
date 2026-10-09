@@ -14,7 +14,7 @@ import PageFrame, { Card } from './PageFrame'
 interface Series { analysis_id: string; name: string; date: string; changed_area_m2: number | null; feature_count: number | null; analyzed_area_m2: number | null; is_demo: boolean }
 
 const AXIS = { fill: '#94a3b8', fontSize: 11 }
-const TIP = { background: '#0b1220', border: '1px solid rgba(255,255,255,0.1)', fontSize: 12 }
+const TIP = { background: '#101913', border: '1px solid rgba(255,255,255,0.1)', fontSize: 12 }
 
 export default function AnalyticsPage() {
   const analyses = useAppStore((s) => s.analyses).filter((a) => a.status === 'completed')
@@ -64,7 +64,7 @@ export default function AnalyticsPage() {
               <Button type="submit" tone="accent" loading={asking} disabled={!q.trim()}><Send className="h-3.5 w-3.5" aria-hidden /> Ask</Button>
             </form>
             <div className="mt-2 flex flex-wrap gap-1.5">
-              {suggestions.map((s) => <button key={s} onClick={() => void ask(s)} disabled={asking} className="focus-ring rounded border border-white/10 px-2 py-0.5 text-2xs text-slate-400 hover:border-accent/40 hover:text-accent disabled:opacity-40">{s}</button>)}
+              {suggestions.map((s) => <button key={s} onClick={() => void ask(s)} disabled={asking} className="focus-ring rounded border border-[color:var(--line-strong)] px-2 py-0.5 text-2xs text-slate-400 hover:border-accent-dim hover:text-accent disabled:opacity-40">{s}</button>)}
             </div>
             {error && <ErrorBlock message={error} />}
             <div className="mt-3 space-y-3">
@@ -74,7 +74,7 @@ export default function AnalyticsPage() {
                     {a.understood && <Chip title="The approved operation your question was mapped to">{a.operation.replace(/_/g, ' ')}</Chip>}
                     {a.answer_source === 'llm_narration' && <Chip tone="accent" title="Wording by a language model; every figure was checked against the computed facts.">LLM wording, figures verified</Chip>}</div>
                   {a.understood ? <AnswerCard answer={a} /> : (
-                    <div className="rounded-md border border-white/[0.08] bg-black/20 p-3 text-xs text-slate-300">{a.answer}</div>
+                    <div className="rounded-md border border-[color:var(--line-strong)] bg-black/20 p-3 text-xs text-slate-300">{a.answer}</div>
                   )}
                 </div>
               ))}
@@ -91,7 +91,7 @@ export default function AnalyticsPage() {
                     <XAxis dataKey="severity" tick={AXIS} axisLine={false} tickLine={false} />
                     <YAxis allowDecimals={false} tick={{ ...AXIS, fontSize: 10 }} axisLine={false} tickLine={false} />
                     <Tooltip contentStyle={TIP} cursor={{ fill: 'rgba(255,255,255,0.04)' }} />
-                    <Bar dataKey="polygons" fill="#22D3EE" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="polygons" fill="#6EE7A0" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               ) : <EmptyBlock title="No detections in this analysis" />}
@@ -105,7 +105,7 @@ export default function AnalyticsPage() {
                     <XAxis type="number" tick={{ ...AXIS, fontSize: 10 }} axisLine={false} tickLine={false} />
                     <YAxis type="category" dataKey="category" width={130} tick={AXIS} axisLine={false} tickLine={false} />
                     <Tooltip contentStyle={TIP} cursor={{ fill: 'rgba(255,255,255,0.04)' }} formatter={(v: number) => `${v.toFixed(2)} ha`} />
-                    <Bar dataKey="hectares" fill="#22D3EE" radius={[0, 4, 4, 0]} />
+                    <Bar dataKey="hectares" fill="#6EE7A0" radius={[0, 4, 4, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               ) : <EmptyBlock title="No category areas" />}
@@ -123,7 +123,7 @@ export default function AnalyticsPage() {
                   <XAxis dataKey="label" tick={AXIS} axisLine={false} tickLine={false} />
                   <YAxis tick={{ ...AXIS, fontSize: 10 }} axisLine={false} tickLine={false} />
                   <Tooltip contentStyle={TIP} formatter={(v: number) => `${v.toFixed(2)} ha`} labelFormatter={(l, p) => `${p?.[0]?.payload?.name ?? ''} · ${l}`} />
-                  <Line type="monotone" dataKey="hectares" stroke="#22D3EE" strokeWidth={2} dot={{ r: 4 }} />
+                  <Line type="monotone" dataKey="hectares" stroke="#6EE7A0" strokeWidth={2} dot={{ r: 4 }} />
                 </LineChart>
               </ResponsiveContainer>
             )}

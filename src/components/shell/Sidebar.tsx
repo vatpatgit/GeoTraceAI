@@ -63,8 +63,8 @@ export default function Sidebar() {
   }
 
   return (
-    <aside aria-label="Primary navigation" className={cn('hairline-b z-30 flex shrink-0 flex-col border-r border-white/[0.06] bg-ink-900 transition-[width] duration-200', expanded ? 'w-56' : 'w-12')}>
-      <div className="flex h-11 items-center gap-2 border-b border-white/[0.06] px-2.5">
+    <aside aria-label="Primary navigation" className={cn('hairline-b z-30 flex shrink-0 flex-col border-r border-[color:var(--line)] bg-ink-900 transition-[width] duration-200', expanded ? 'w-56' : 'w-12')}>
+      <div className="flex h-11 items-center gap-2 border-b border-[color:var(--line)] px-2.5">
         <Logo className="h-6 w-6 shrink-0" />
         {expanded && <span className="text-sm font-semibold tracking-tight text-slate-100">GeoTrace</span>}
       </div>
@@ -84,7 +84,7 @@ export default function Sidebar() {
                   {expanded && <span className="truncate text-xs">{item.label}</span>}
                 </>
               )
-              const cls = cn('focus-ring relative mx-1.5 flex h-8 items-center gap-2.5 rounded-md px-2.5 text-slate-400 transition-colors hover:bg-white/[0.06] hover:text-slate-100', active && 'bg-accent/10 text-accent')
+              const cls = cn('focus-ring relative mx-1.5 flex h-8 items-center gap-2.5 rounded-md px-2.5 text-slate-400 transition-colors hover:bg-ink-700 hover:text-slate-100', active && 'bg-accent-surface text-accent')
               return item.href ? (
                 <Link key={item.id} href={item.href} title={item.label} aria-label={item.label} aria-current={active ? 'page' : undefined} className={cls}>
                   {active && <span className="absolute -left-1.5 top-1.5 h-5 w-[2px] rounded-full bg-accent" />}
@@ -101,7 +101,7 @@ export default function Sidebar() {
         onClick={() => setExpanded((v) => !v)}
         aria-label={expanded ? 'Collapse sidebar' : 'Expand sidebar'}
         title={expanded ? 'Collapse sidebar' : 'Expand sidebar'}
-        className="focus-ring m-1.5 flex h-8 items-center justify-center rounded-md text-slate-500 hover:bg-white/[0.06] hover:text-slate-200"
+        className="focus-ring m-1.5 flex h-8 items-center justify-center rounded-md text-slate-500 hover:bg-ink-700 hover:text-slate-200"
       >
         {expanded ? <ChevronsLeft className="h-4 w-4" /> : <ChevronsRight className="h-4 w-4" />}
       </button>

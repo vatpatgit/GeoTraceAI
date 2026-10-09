@@ -21,7 +21,7 @@ function defaultWindows() {
 function SceneRow({ s, selected, suggested, onSelect, onPreview }: { s: Scene; selected: boolean; suggested: boolean; onSelect: () => void; onPreview: () => void }) {
   const tiles = (s.properties.tile_ids as string[] | undefined)?.length ?? 1
   return (
-    <li className={cn('flex items-center gap-3 border-b border-white/[0.05] px-3 py-1.5 text-xs last:border-b-0', selected && 'bg-accent/[0.07]')}>
+    <li className={cn('flex items-center gap-3 border-b border-[color:var(--line)] px-3 py-1.5 text-xs last:border-b-0', selected && 'bg-accent/[0.07]')}>
       <input type="radio" checked={selected} onChange={onSelect} aria-label={`Select scene from ${formatDate(s.acquired_at)}`} />
       <span className="w-24 font-mono text-slate-200">{formatDate(s.acquired_at)}</span>
       <span className="w-20 font-mono text-slate-400" title="Cloud cover over the area (area-weighted across tiles)">{s.cloud_cover_pct === null ? 'cloud ?' : `${s.cloud_cover_pct.toFixed(1)}% cloud`}</span>
@@ -126,7 +126,7 @@ export default function SentinelStep({ projectId, region }: { projectId: string;
         <div className="space-y-3">
           <h3 className="text-xs font-medium text-slate-200">1. Area of interest</h3>
           {region ? (
-            <div className="rounded-md border border-white/[0.08] bg-black/20 p-3 text-xs text-slate-300">
+            <div className="rounded-md border border-[color:var(--line-strong)] bg-black/20 p-3 text-xs text-slate-300">
               <div className="text-slate-100">{region.name}</div>
               <div className="mt-1 font-mono text-2xs text-slate-400">W {region.bbox[0].toFixed(4)} · S {region.bbox[1].toFixed(4)} · E {region.bbox[2].toFixed(4)} · N {region.bbox[3].toFixed(4)}</div>
               <div className="mt-1 text-2xs text-slate-500">Bounding box of the region, ~{region.area_km2.toLocaleString('en-US', { maximumFractionDigits: 1 })} km2{system && region.area_km2 > system.limits.max_aoi_km2 ? ` - exceeds the ${system.limits.max_aoi_km2.toLocaleString('en-US')} km2 limit` : ''}.</div>
@@ -167,7 +167,7 @@ export default function SentinelStep({ projectId, region }: { projectId: string;
       {busy && <div className="flex items-center gap-2 text-xs text-slate-400"><Spinner /> Querying the catalogue...</div>}
 
       {result && (
-        <section className="space-y-3 rounded-lg border border-white/[0.08] bg-ink-850 p-4" aria-label="Search results">
+        <section className="space-y-3 rounded-lg border border-[color:var(--line-strong)] bg-ink-850 p-4" aria-label="Search results">
           <div className="flex flex-wrap items-center justify-between gap-2"><h3 className="label">3. Choose scenes ({result.provider}, ~{result.aoi_area_km2.toFixed(1)} km2)</h3></div>
           {result.warnings.map((w) => <p key={w} className="flex gap-1.5 text-xs text-amber-200"><AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />{w}</p>)}
           {(['before', 'after'] as const).map((k) => {
@@ -175,8 +175,8 @@ export default function SentinelStep({ projectId, region }: { projectId: string;
             return (
               <div key={k}>
                 <h4 className="label mb-1">{k} window &middot; {list.length} scene{list.length === 1 ? '' : 's'}</h4>
-                {list.length === 0 ? <p className="rounded border border-white/[0.07] px-3 py-2 text-xs text-slate-500">No scene. Widen the dates or raise the cloud limit; GeoTrace will not substitute an arbitrary scene.</p> : (
-                  <ul className="max-h-52 overflow-y-auto rounded border border-white/[0.07]" role="radiogroup" aria-label={`${k} scene`}>
+                {list.length === 0 ? <p className="rounded border border-[color:var(--line-strong)] px-3 py-2 text-xs text-slate-500">No scene. Widen the dates or raise the cloud limit; GeoTrace will not substitute an arbitrary scene.</p> : (
+                  <ul className="max-h-52 overflow-y-auto rounded border border-[color:var(--line-strong)]" role="radiogroup" aria-label={`${k} scene`}>
                     {list.map((s) => <SceneRow key={s.product_id} s={s} selected={sel === s.product_id} suggested={suggested === s.product_id} onSelect={() => (k === 'before' ? setSelB(s.product_id) : setSelA(s.product_id))} onPreview={() => void showPreview(s)} />)}
                   </ul>
                 )}

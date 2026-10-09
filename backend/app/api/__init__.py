@@ -13,6 +13,7 @@ from app.api.layers import router as layers_router
 from app.api.sentinel import router as sentinel_router
 from app.api.weather import router as weather_router
 from app.api.geoguider import router as geoguider_router
+from app.api.hazards import router as hazards_router
 
 api_router = APIRouter()
 
@@ -25,6 +26,7 @@ api_router.include_router(analyses_router, prefix="/analyses", tags=["Analyses"]
 api_router.include_router(alerts_router, prefix="/alerts", tags=["Alerts"])
 api_router.include_router(sentinel_router, prefix="/sentinel", tags=["Sentinel"])
 api_router.include_router(weather_router, prefix="/weather-alerts", tags=["Weather alerts"])
+api_router.include_router(hazards_router, prefix="/hazard-alerts", tags=["Hazard alerts"])
 api_router.include_router(geoguider_router, prefix="/geoguider", tags=["GeoGuider"])
 api_router.include_router(layers_router, prefix="/layers", tags=["Layers"])
 api_router.include_router(analytics_router, prefix="/analytics", tags=["Analytics"])

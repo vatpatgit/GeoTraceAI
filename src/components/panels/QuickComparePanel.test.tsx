@@ -40,8 +40,14 @@ describe('QuickComparePanel', () => {
     await fill('-62.3', '-10.9', '-62.27', '-10.87')
     await userEvent.click(screen.getByRole('button', { name: 'Retrieve images and compare' }))
     await waitFor(() => expect(m.search).toHaveBeenCalledWith(expect.objectContaining({ bbox: [-62.3, -10.9, -62.27, -10.87] })))
-    expect(await screen.findByText(/No Sentinel-2 scene within/)).toBeInTheDocument()
+    expect(await screen.findByText(/No Sentinel-2 scene with at most 10% cloud within/)).toBeInTheDocument()
     expect(useAppStore.getState().quickCompare).toBeNull()
+    // every search asks for clear images only, and widens the window around the dates before giving up
+    const calls = m.search.mock.calls.map((c) => c[0])
+    expect(calls.every((c) => c.max_cloud_cover_pct === 10)).toBe(true)
+    const span = (c: { before: { start: string; end: string } }) => Date.parse(c.before.end) - Date.parse(c.before.start)
+    expect(calls.length).toBeGreaterThan(1)
+    expect(span(calls[calls.length - 1])).toBeGreaterThan(span(calls[0]))
   })
 
   it('fills the W/S/E/N fields from a rectangle drawn on the map', async () => {

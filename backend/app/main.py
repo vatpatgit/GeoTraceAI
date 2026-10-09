@@ -47,11 +47,18 @@ async def lifespan(app: FastAPI):
         from app.jobs.weather_refresh import run_loop as weather_loop
 
         weather_task = asyncio.create_task(weather_loop(stop))
+    hazard_task: asyncio.Task | None = None
+    if settings.JOB_RUNNER == "embedded" and settings.HAZARD_REFRESH_MINUTES > 0 and settings.HAZARD_FEED_PROVIDER != "none":
+        from app.jobs.hazard_refresh import run_loop as hazard_loop
+
+        hazard_task = asyncio.create_task(hazard_loop(stop))
     logger.info("GeoTrace API %s started (env=%s, job_runner=%s)", VERSION, settings.ENV, settings.JOB_RUNNER)
     yield
     stop.set()
     if weather_task:
         weather_task.cancel()
+    if hazard_task:
+        hazard_task.cancel()
     if worker:
         try:
             await asyncio.wait_for(worker, timeout=35)

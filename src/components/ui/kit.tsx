@@ -8,10 +8,10 @@ import type { Severity } from '@/lib/api/types'
 type Tone = 'default' | 'accent' | 'danger' | 'ghost'
 
 const TONES: Record<Tone, string> = {
-  default: 'border-white/10 bg-white/[0.03] text-slate-200 hover:bg-white/[0.07]',
-  accent: 'border-accent/40 bg-accent/10 text-accent hover:bg-accent/20',
+  default: 'border-ink-600 bg-ink-800 text-slate-200 hover:border-ink-500 hover:bg-ink-700',
+  accent: 'border-accent-dim bg-accent-surface text-accent hover:border-accent/50 hover:bg-[#1a4430]',
   danger: 'border-red-500/30 bg-red-500/10 text-red-300 hover:bg-red-500/20',
-  ghost: 'border-transparent text-slate-400 hover:bg-white/[0.06] hover:text-slate-100',
+  ghost: 'border-transparent text-slate-400 hover:bg-ink-700 hover:text-slate-100',
 }
 
 export function Button({ tone = 'default', className, loading, children, ...props }: ButtonHTMLAttributes<HTMLButtonElement> & { tone?: Tone; loading?: boolean }) {
@@ -33,7 +33,7 @@ export function IconButton({ label, active, children, className, ...props }: But
       aria-pressed={active}
       className={cn(
         'focus-ring inline-flex h-8 w-8 items-center justify-center rounded-md border text-slate-400 transition-colors disabled:opacity-40',
-        active ? 'border-accent/40 bg-accent/10 text-accent' : 'border-transparent hover:bg-white/[0.07] hover:text-slate-100',
+        active ? 'border-accent-dim bg-accent-surface text-accent' : 'border-transparent hover:bg-ink-700 hover:text-slate-100',
         className,
       )}
     >
@@ -46,7 +46,7 @@ export function Segmented<T extends string>({ value, options, onChange, label, s
   value: T; options: { value: T; label: ReactNode; title?: string; disabled?: boolean }[]; onChange: (v: T) => void; label: string; size?: 'sm' | 'md'
 }) {
   return (
-    <div role="radiogroup" aria-label={label} className="inline-flex rounded-md border border-white/10 bg-black/30 p-0.5">
+    <div role="radiogroup" aria-label={label} className="inline-flex rounded-md border border-[color:var(--line-strong)] bg-black/30 p-0.5">
       {options.map((o) => (
         <button
           key={o.value}
@@ -76,7 +76,7 @@ export function Switch({ checked, onChange, label, disabled }: { checked: boolea
       aria-label={label}
       disabled={disabled}
       onClick={() => onChange(!checked)}
-      className={cn('focus-ring relative h-4 w-7 shrink-0 rounded-full border transition-colors disabled:opacity-35', checked ? 'border-accent/50 bg-accent/30' : 'border-white/15 bg-white/[0.06]')}
+      className={cn('focus-ring relative h-4 w-7 shrink-0 rounded-full border transition-colors disabled:opacity-35', checked ? 'border-accent/50 bg-accent/30' : 'border-[color:var(--line-strong)] bg-white/[0.06]')}
     >
       <span className={cn('absolute top-[1px] h-3 w-3 rounded-full transition-all', checked ? 'left-[13px] bg-accent' : 'left-[1px] bg-slate-400')} />
     </button>
@@ -85,14 +85,14 @@ export function Switch({ checked, onChange, label, disabled }: { checked: boolea
 
 export function Chip({ children, tone = 'default', className, title }: { children: ReactNode; tone?: 'default' | 'accent' | 'warn' | 'danger' | 'demo' | 'ok'; className?: string; title?: string }) {
   const tones = {
-    default: 'border-white/10 bg-white/[0.04] text-slate-300',
-    accent: 'border-accent/30 bg-accent/10 text-accent',
+    default: 'border-[color:var(--line-strong)] bg-white/[0.04] text-slate-300',
+    accent: 'border-accent/30 bg-accent-surface text-accent',
     warn: 'border-amber-400/30 bg-amber-400/10 text-amber-300',
     danger: 'border-red-500/30 bg-red-500/10 text-red-300',
     ok: 'border-emerald-400/30 bg-emerald-400/10 text-emerald-300',
     demo: 'border-demo/40 bg-demo/10 text-demo',
   }
-  return <span title={title} className={cn('inline-flex items-center gap-1 rounded border px-1.5 py-[1px] font-mono text-2xs uppercase tracking-wider', tones[tone], className)}>{children}</span>
+  return <span title={title} className={cn('inline-flex items-center gap-1 whitespace-nowrap rounded border px-1.5 py-[1px] font-mono text-2xs uppercase tracking-wider', tones[tone], className)}>{children}</span>
 }
 
 /** Always-visible marker for seeded / synthetic data so it can never be mistaken for a live result. */
@@ -186,4 +186,4 @@ export function Field({ label, hint, children, htmlFor }: { label: string; hint?
   )
 }
 
-export const inputCls = 'focus-ring w-full rounded-md border border-white/10 bg-black/30 px-2.5 py-1.5 text-xs text-slate-100 placeholder:text-slate-600 disabled:opacity-50'
+export const inputCls = 'focus-ring w-full rounded-md border border-[color:var(--line-strong)] bg-black/30 px-2.5 py-1.5 text-xs text-slate-100 placeholder:text-slate-600 disabled:opacity-50'

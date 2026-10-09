@@ -135,9 +135,9 @@ export default function CompareView() {
   }
   const toggle = qc ? (
     <div className="absolute left-1/2 top-3 z-30 flex -translate-x-1/2 flex-col items-center gap-1.5">
-      <div className="flex items-center gap-2 rounded-md border border-white/10 bg-ink-900/90 p-0.5">
+      <div className="flex items-center gap-2 rounded-md border border-[color:var(--line-strong)] bg-ink-900/90 p-0.5">
         <Segmented label="Comparison layout" size="sm" value={layout} onChange={setLayout} options={[{ value: 'slider', label: 'Slider' }, { value: 'side', label: 'Side by side' }]} />
-        <label className="flex items-center gap-1.5 border-l border-white/10 pl-2 pr-1.5 text-2xs text-slate-300" title="Run the learned change-detection model on the two images and highlight what it flags on the after image">
+        <label className="flex items-center gap-1.5 border-l border-[color:var(--line-strong)] pl-2 pr-1.5 text-2xs text-slate-300" title="Run the learned change-detection model on the two images and highlight what it flags on the after image">
           {changes.status === 'loading' ? <Spinner className="h-3 w-3" label="Detecting changes" /> : null}
           ML changes
           <Switch checked={changes.show} onChange={(v) => void toggleChanges(v)} label="Show changes detected by the ML model" disabled={changes.status === 'loading'} />
@@ -147,10 +147,10 @@ export default function CompareView() {
   ) : null
   const notice = qc ? (
     <div className="pointer-events-none absolute bottom-3 left-1/2 z-30 flex -translate-x-1/2 flex-col items-center gap-1.5">
-      {changes.status === 'loading' && <div role="status" className="pointer-events-auto rounded border border-white/10 bg-ink-900/90 px-2 py-1 text-2xs text-slate-300">Running the change-detection model…</div>}
+      {changes.status === 'loading' && <div role="status" className="pointer-events-auto rounded border border-[color:var(--line-strong)] bg-ink-900/90 px-2 py-1 text-2xs text-slate-300">Running the change-detection model…</div>}
       {changes.error && <div role="alert" className="pointer-events-auto max-w-md rounded border border-red-500/30 bg-ink-900/95 px-2 py-1 text-2xs text-red-300">{changes.error}</div>}
       {changes.show && meta && (
-        <div role="status" className="pointer-events-auto max-w-lg rounded border border-white/10 bg-ink-900/95 px-2.5 py-2 text-2xs text-slate-300">
+        <div role="status" className="pointer-events-auto max-w-lg rounded border border-[color:var(--line-strong)] bg-ink-900/95 px-2.5 py-2 text-2xs text-slate-300">
           <div className="flex items-start justify-between gap-2">
             <span><span className="font-mono text-slate-100">{meta.feature_count}</span> area{meta.feature_count === 1 ? '' : 's'} flagged · {formatArea(meta.total_changed_area_m2)}
             {' '}(<span className="font-mono text-slate-100">{(meta.stats.changed_fraction * 100).toFixed(2)}%</span> of the {formatArea(meta.stats.analyzed_area_m2)} compared)
@@ -172,7 +172,7 @@ export default function CompareView() {
           <div className="mt-1.5 text-slate-500">Model: {meta.model_name ?? meta.model_id} · fed at {meta.model_fed_at_m ?? '?'} m/px</div>
           <span className="mt-0.5 block text-amber-200/80">{meta.disclaimer}</span>
           {canWrite(user?.role) && projectId && (
-            <button onClick={() => void saveAsAnalysis()} disabled={saving} className="focus-ring mt-2 rounded border border-accent/40 bg-accent/10 px-2 py-1 text-accent hover:bg-accent/20 disabled:opacity-50">
+            <button onClick={() => void saveAsAnalysis()} disabled={saving} className="focus-ring mt-2 rounded border border-accent-dim bg-accent-surface px-2 py-1 text-accent hover:bg-[#1a4430] disabled:opacity-50">
               {saving ? 'Saving…' : 'Save as analysis (alerts, exports, reports)'}
             </button>
           )}
@@ -185,7 +185,7 @@ export default function CompareView() {
   if (layout === 'side' && qc) {
     return (
       <div className="absolute inset-0 flex select-none gap-px bg-white/20">
-        <div className="relative min-w-0 flex-1"><MapCanvas role="before" onMap={setBefore} /><div className="pointer-events-none absolute left-14 top-3 z-10 rounded border border-white/10 bg-ink-900/85 px-2 py-1 font-mono text-2xs uppercase tracking-wider text-slate-300">Before &middot; {sceneLabel(qc.before)}{qc.before.cloud !== null ? ` · ${qc.before.cloud.toFixed(0)}% cloud` : ''}</div></div>
+        <div className="relative min-w-0 flex-1"><MapCanvas role="before" onMap={setBefore} /><div className="pointer-events-none absolute left-14 top-3 z-10 rounded border border-[color:var(--line-strong)] bg-ink-900/85 px-2 py-1 font-mono text-2xs uppercase tracking-wider text-slate-300">Before &middot; {sceneLabel(qc.before)}{qc.before.cloud !== null ? ` · ${qc.before.cloud.toFixed(0)}% cloud` : ''}</div></div>
         <div className="relative min-w-0 flex-1"><MapCanvas role="after" onMap={setAfter} /><div className="pointer-events-none absolute right-3 top-3 z-10 rounded border border-accent/30 bg-ink-900/85 px-2 py-1 font-mono text-2xs uppercase tracking-wider text-accent">After &middot; {sceneLabel(qc.after)}{qc.after.cloud !== null ? ` · ${qc.after.cloud.toFixed(0)}% cloud` : ''}</div></div>
         {toggle}
         {notice}
@@ -202,7 +202,7 @@ export default function CompareView() {
         <MapCanvas role="before" interactive={false} onMap={setBefore} />
       </div>
 
-      <div className="pointer-events-none absolute left-3 top-3 z-10 rounded border border-white/10 bg-ink-900/85 px-2 py-1 font-mono text-2xs uppercase tracking-wider text-slate-300">
+      <div className="pointer-events-none absolute left-3 top-3 z-10 rounded border border-[color:var(--line-strong)] bg-ink-900/85 px-2 py-1 font-mono text-2xs uppercase tracking-wider text-slate-300">
         Before <span className="text-slate-500">&middot;</span> {qc ? sceneLabel(qc.before) : formatDate(analysis?.before_date)}
       </div>
       <div className="pointer-events-none absolute right-3 top-3 z-10 rounded border border-accent/30 bg-ink-900/85 px-2 py-1 font-mono text-2xs uppercase tracking-wider text-accent">
@@ -229,7 +229,7 @@ export default function CompareView() {
         className="focus-ring absolute bottom-0 top-0 z-20 -ml-3 flex w-6 cursor-ew-resize items-center justify-center"
         style={{ left: `${pos * 100}%` }}
       >
-        <div className="h-full w-px bg-accent shadow-[0_0_10px_rgba(45,212,191,0.8)]" />
+        <div className="h-full w-px bg-accent shadow-[0_0_10px_rgba(110,231,160,0.7)]" />
         <div className="absolute flex h-8 w-5 items-center justify-center rounded-full border border-accent/70 bg-ink-900 text-accent shadow-lg">
           <span className="font-mono text-[10px] leading-none">&#8660;</span>
         </div>

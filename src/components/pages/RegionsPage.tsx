@@ -69,7 +69,7 @@ export default function RegionsPage() {
             <thead className="text-slate-500"><tr><th className="label py-1.5 font-normal">Name</th><th className="label font-normal">Risk level</th><th className="label text-right font-normal">Area</th><th className="label pl-4 font-normal">Created</th><th /></tr></thead>
             <tbody>
               {regions.map((r) => (
-                <tr key={r.id} className="border-t border-white/[0.05]">
+                <tr key={r.id} className="border-t border-[color:var(--line)]">
                   <td className="py-2"><div className="text-slate-100">{r.name}</div>{r.description && <div className="text-2xs text-slate-500">{r.description}</div>}</td>
                   <td><Chip tone={r.risk_level === 'critical' || r.risk_level === 'high' ? 'danger' : r.risk_level === 'medium' ? 'warn' : 'default'} title="Configured by an administrator; not computed from imagery.">{r.risk_level}</Chip></td>
                   <td className="text-right font-mono text-slate-300">{r.area_km2.toLocaleString(undefined, { maximumFractionDigits: 1 })} km²</td>

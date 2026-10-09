@@ -52,7 +52,7 @@ export default function ChangesPage() {
   }
 
   const cats = Object.keys(current?.summary?.by_category ?? {})
-  const pill = (on: boolean) => cn('focus-ring rounded border px-1.5 py-0.5 font-mono text-2xs uppercase', on ? 'border-accent/40 bg-accent/10 text-accent' : 'border-white/10 text-slate-500 hover:text-slate-200')
+  const pill = (on: boolean) => cn('focus-ring rounded border px-1.5 py-0.5 font-mono text-2xs uppercase', on ? 'border-accent-dim bg-accent-surface text-accent' : 'border-[color:var(--line-strong)] text-slate-500 hover:text-slate-200')
 
   return (
     <PageFrame wide title="Change intelligence" subtitle="Every detected polygon of an analysis with its measured attributes. Review status is a human decision; categories and severity are inferred.">
@@ -80,7 +80,7 @@ export default function ChangesPage() {
                   <thead className="text-slate-500"><tr className="hairline-b"><th className="label px-3 py-2 font-normal">#</th><th className="label font-normal">Category</th><th className="label font-normal">Severity</th><th className="label text-right font-normal">Area</th><th className="label text-right font-normal">Magnitude</th><th className="label text-right font-normal">Score</th><th className="label pl-4 font-normal">Review</th><th /></tr></thead>
                   <tbody>
                     {res.data.items.map((f) => (
-                      <tr key={f.id} className="border-b border-white/[0.04] hover:bg-white/[0.03]">
+                      <tr key={f.id} className="border-b border-[color:var(--line)] hover:bg-ink-800/70">
                         <td className="px-3 py-2 font-mono text-slate-400">{f.seq}</td>
                         <td><div className="text-slate-200">{categoryLabel(f.category)}</div><div className="text-2xs text-slate-500">{basisLabel(f.category_basis)}</div></td>
                         <td><SeverityBadge severity={f.severity} /></td>
@@ -101,7 +101,7 @@ export default function ChangesPage() {
                 </table>
               )}
               {res.data && res.data.total > PAGE && (
-                <div className="flex items-center justify-between border-t border-white/[0.06] px-3 py-2 text-2xs text-slate-500">
+                <div className="flex items-center justify-between border-t border-[color:var(--line)] px-3 py-2 text-2xs text-slate-500">
                   <span>{page * PAGE + 1}–{Math.min((page + 1) * PAGE, res.data.total)} of {res.data.total}</span>
                   <span className="space-x-1"><Button tone="ghost" disabled={page === 0} onClick={() => setPage(page - 1)}>Previous</Button><Button tone="ghost" disabled={(page + 1) * PAGE >= res.data.total} onClick={() => setPage(page + 1)}>Next</Button></span>
                 </div>

@@ -31,8 +31,8 @@ export default function LoginScreen() {
 
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-ink-950 p-6">
-      <div aria-hidden className="pointer-events-none absolute inset-0 opacity-60" style={{ background: 'radial-gradient(60% 50% at 50% 38%, rgba(45,212,191,0.10), transparent 70%)' }} />
-      <div aria-hidden className="pointer-events-none absolute inset-0 opacity-[0.07]" style={{ backgroundImage: 'linear-gradient(rgba(148,163,184,.6) 1px, transparent 1px), linear-gradient(90deg, rgba(148,163,184,.6) 1px, transparent 1px)', backgroundSize: '48px 48px' }} />
+      <div aria-hidden className="pointer-events-none absolute inset-0 opacity-60" style={{ background: 'radial-gradient(60% 50% at 50% 38%, rgba(110,231,160,0.09), transparent 70%)' }} />
+      <div aria-hidden className="pointer-events-none absolute inset-0 opacity-[0.07]" style={{ backgroundImage: 'linear-gradient(rgba(120,170,140,.6) 1px, transparent 1px), linear-gradient(90deg, rgba(120,170,140,.6) 1px, transparent 1px)', backgroundSize: '48px 48px' }} />
       <form onSubmit={submit} className="panel-solid relative w-full max-w-sm space-y-4 rounded-lg p-6 shadow-2xl shadow-black/60" aria-label="Sign in">
         <div className="flex items-center gap-3">
           <Logo className="h-9 w-9" />

@@ -27,7 +27,7 @@ function Dropdown({ label, trigger, children, align = 'left', width = 'w-72' }: 
   const ref = useOutside(open, () => setOpen(false))
   return (
     <div ref={ref} className="relative">
-      <button aria-haspopup="listbox" aria-expanded={open} aria-label={label} onClick={() => setOpen((v) => !v)} className="focus-ring flex h-7 max-w-[220px] items-center gap-1.5 rounded-md border border-white/[0.08] bg-white/[0.03] px-2 text-xs text-slate-200 hover:bg-white/[0.07]">
+      <button aria-haspopup="listbox" aria-expanded={open} aria-label={label} onClick={() => setOpen((v) => !v)} className="focus-ring flex h-7 max-w-[220px] items-center gap-1.5 rounded-md border border-[color:var(--line-strong)] bg-ink-800/70 px-2 text-xs text-slate-200 hover:bg-ink-700">
         {trigger}
         <ChevronDown className="h-3 w-3 shrink-0 text-slate-500" />
       </button>
@@ -42,7 +42,7 @@ function Dropdown({ label, trigger, children, align = 'left', width = 'w-72' }: 
 
 function Option({ active, onClick, children }: { active?: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
-    <button role="option" aria-selected={!!active} onClick={onClick} className={cn('focus-ring flex w-full items-start gap-2 px-3 py-1.5 text-left text-xs hover:bg-white/[0.06]', active ? 'text-accent' : 'text-slate-300')}>
+    <button role="option" aria-selected={!!active} onClick={onClick} className={cn('focus-ring flex w-full items-start gap-2 px-3 py-1.5 text-left text-xs hover:bg-ink-700', active ? 'text-accent' : 'text-slate-300')}>
       {children}
     </button>
   )
@@ -146,7 +146,7 @@ export default function TopBar() {
         <form onSubmit={submitSearch} role="search">
           <Search className="pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-500" aria-hidden />
           <input value={query} onChange={(e) => { setQuery(e.target.value); setSearchOpen(true) }} onFocus={() => setSearchOpen(true)} aria-label="Search analyses or enter lat, lon"
-            placeholder="Search analysis or  lat, lon" className="focus-ring h-7 w-56 rounded-md border border-white/[0.08] bg-black/30 pl-7 pr-2 text-xs text-slate-100 placeholder:text-slate-600" />
+            placeholder="Search analysis or  lat, lon" className="focus-ring h-7 w-56 rounded-md border border-[color:var(--line-strong)] bg-black/30 pl-7 pr-2 text-xs text-slate-100 placeholder:text-slate-600" />
         </form>
         {searchOpen && (results.length > 0 || coord) && (
           <div className="panel-solid absolute right-0 top-9 z-50 w-72 rounded-md py-1 shadow-2xl shadow-black/70">

@@ -57,7 +57,7 @@ export default function AuthGate({ children, adminOnly = false }: { children: Re
         <div>
           <h1 className="text-lg font-semibold text-accent">Access denied</h1>
           <p className="mt-2 text-xs text-slate-400">This area is restricted to administrators.</p>
-          <Link href="/map" className="btn mt-4 border-accent/40 bg-accent/10 text-accent">Back to the map</Link>
+          <Link href="/map" className="btn mt-4 border-accent-dim bg-accent-surface text-accent">Back to the map</Link>
         </div>
       </div>
     )

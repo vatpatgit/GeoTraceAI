@@ -77,7 +77,7 @@ export default function UploadSlot({ title, projectId, asset, onAsset, plain = n
         <div
           onDragOver={(e) => { e.preventDefault(); setDrag(true) }} onDragLeave={() => setDrag(false)}
           onDrop={(e) => { e.preventDefault(); setDrag(false); const f = e.dataTransfer.files?.[0]; if (f) void send(f) }}
-          className={cn('flex min-h-[120px] flex-col items-center justify-center gap-2 rounded-md border border-dashed px-4 py-5 text-center transition-colors', drag ? 'border-accent bg-accent/[0.06]' : 'border-white/15 bg-black/20')}
+          className={cn('flex min-h-[120px] flex-col items-center justify-center gap-2 rounded-md border border-dashed px-4 py-5 text-center transition-colors', drag ? 'border-accent bg-accent/[0.06]' : 'border-[color:var(--line-strong)] bg-black/20')}
         >
           <FileUp className="h-5 w-5 text-slate-500" aria-hidden />
           {uploading ? (
@@ -95,7 +95,7 @@ export default function UploadSlot({ title, projectId, asset, onAsset, plain = n
 
 
       {plain && (
-        <div className="space-y-2 rounded-md border border-white/[0.07] bg-black/20 p-2.5">
+        <div className="space-y-2 rounded-md border border-[color:var(--line-strong)] bg-black/20 p-2.5">
           <div className="flex items-center gap-1.5 text-xs text-slate-200"><CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" aria-hidden /><span className="truncate">{plain.name}</span><span className="text-slate-500">{formatBytes(plain.file.size)}</span></div>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={plain.url} alt={`${title} preview`} className="max-h-48 w-full rounded object-contain" />
@@ -103,7 +103,7 @@ export default function UploadSlot({ title, projectId, asset, onAsset, plain = n
         </div>
       )}
       {asset && (
-        <div className="space-y-2 rounded-md border border-white/[0.07] bg-black/20 p-2.5">
+        <div className="space-y-2 rounded-md border border-[color:var(--line-strong)] bg-black/20 p-2.5">
           <div className="flex items-center gap-1.5 text-xs text-slate-200"><CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" aria-hidden /><span className="truncate">{asset.original_filename}</span><span className="text-slate-500">{formatBytes(asset.size_bytes)}</span></div>
           <dl className="grid grid-cols-2 gap-x-3 gap-y-1 font-mono text-2xs text-slate-400">
             <dt>Size</dt><dd className="text-slate-200">{asset.width} x {asset.height} px, {asset.band_count} band{asset.band_count > 1 ? 's' : ''}</dd>
@@ -117,7 +117,7 @@ export default function UploadSlot({ title, projectId, asset, onAsset, plain = n
               <div className="grid grid-cols-4 gap-1.5">
                 {ROLES.map((r) => (
                   <label key={r} className="text-2xs text-slate-500">{r}
-                    <select value={bandMap[r] ?? ''} onChange={(e) => { const n = { ...bandMap }; if (e.target.value) n[r] = Number(e.target.value); else delete n[r]; void saveBands(n) }} aria-label={`${title} ${r} band`} className="focus-ring mt-0.5 w-full rounded border border-white/10 bg-black/40 px-1 py-0.5 font-mono text-2xs text-slate-200">
+                    <select value={bandMap[r] ?? ''} onChange={(e) => { const n = { ...bandMap }; if (e.target.value) n[r] = Number(e.target.value); else delete n[r]; void saveBands(n) }} aria-label={`${title} ${r} band`} className="focus-ring mt-0.5 w-full rounded border border-[color:var(--line-strong)] bg-black/40 px-1 py-0.5 font-mono text-2xs text-slate-200">
                       <option value="">-</option>{Array.from({ length: asset.band_count }, (_, i) => <option key={i} value={i + 1}>{i + 1}{asset.band_descriptions?.[i] ? ` (${asset.band_descriptions[i]})` : ''}</option>)}
                     </select>
                   </label>

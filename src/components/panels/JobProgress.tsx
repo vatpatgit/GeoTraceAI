@@ -44,7 +44,7 @@ export default function JobProgress() {
 
   return (
     <div className="grid h-full min-h-0 grid-cols-1 gap-0 overflow-y-auto md:grid-cols-[1.1fr_1fr]">
-      <div className="hairline-b border-white/[0.06] p-3 md:border-b-0 md:border-r">
+      <div className="hairline-b border-[color:var(--line)] p-3 md:border-b-0 md:border-r">
         <div className="mb-2 flex items-center justify-between">
           <div className="flex items-center gap-2"><Chip tone={analysis.status === 'failed' ? 'danger' : analysis.status === 'completed' ? 'ok' : 'accent'}>{STATUS_LABEL[analysis.status]}</Chip><span className="font-mono text-2xs text-slate-500">{Math.round(analysis.progress * 100)}%</span></div>
           {canWrite(user?.role) && (

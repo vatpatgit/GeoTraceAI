@@ -38,7 +38,7 @@ export default function AssetMap({ assetId, bounds, label }: { assetId: string |
       map.addLayer({ id: 'asset', type: 'raster', source: 'asset', paint: { 'raster-fade-duration': 0 } })
       const [w, s, e, n] = bounds
       map.addSource('asset-outline', { type: 'geojson', data: { type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: [[[w, s], [e, s], [e, n], [w, n], [w, s]]] } } })
-      map.addLayer({ id: 'asset-outline', type: 'line', source: 'asset-outline', paint: { 'line-color': '#2DD4BF', 'line-width': 1.5, 'line-dasharray': [3, 2] } })
+      map.addLayer({ id: 'asset-outline', type: 'line', source: 'asset-outline', paint: { 'line-color': '#6EE7A0', 'line-width': 1.5, 'line-dasharray': [3, 2] } })
       map.fitBounds([[w, s], [e, n]], { padding: 24, duration: 0, maxZoom: 18 })
     }
     if (map.isStyleLoaded()) apply()
@@ -46,7 +46,7 @@ export default function AssetMap({ assetId, bounds, label }: { assetId: string |
   }, [assetId, bounds])
 
   return (
-    <div className="relative h-52 overflow-hidden rounded-md border border-white/10 bg-black/40">
+    <div className="relative h-52 overflow-hidden rounded-md border border-[color:var(--line-strong)] bg-black/40">
       <div ref={el} className="h-full w-full" role="img" aria-label={`${label} imagery preview map`} />
       <span className="pointer-events-none absolute left-2 top-2 rounded bg-ink-900/85 px-1.5 py-0.5 font-mono text-2xs uppercase tracking-wider text-slate-300">{label}</span>
       {!assetId && <div className="absolute inset-0 flex items-center justify-center text-2xs text-slate-600">No imagery yet</div>}

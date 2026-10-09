@@ -5,6 +5,7 @@ import type {
   PairValidation, Project, Region, ReviewStatus, SystemStatus, UserMe,
 } from './types'
 import type { LayerInfo } from './layers'
+import type { HazardAlert, HazardRefresh, HazardStatus } from './hazards'
 import type { AoiWeatherState, WeatherAlertList, WeatherEvent, WeatherRefresh, WeatherStatus } from './weather'
 import type { GgChatResponse, GgConversation, GgStatus, GgUi, GgWorkflow, GgMessage } from './geoguider'
 import type { SentinelSearchBody, SentinelSearchResult, AcquireBody, AcquireResult, MlChangeCollection, PlainChangeCollection } from './sentinel'
@@ -15,6 +16,7 @@ export * from './layers'
 export * from './sentinel'
 export * from './weather'
 export * from './geoguider'
+export * from './hazards'
 
 /** Flatten FeatureFilters into query params (arrays are repeated, bbox is comma separated). */
 export function filterQuery(f: FeatureFilters = {}): Record<string, string | number | (string | number)[] | undefined> {
@@ -187,6 +189,14 @@ export const api = {
     conversation: (id: string) => apiFetch<GgConversation>(`/geoguider/conversations/${id}`),
     workflow: (id: string) => apiFetch<{ workflow: GgWorkflow; new_messages: GgMessage[] }>(`/geoguider/conversations/${id}/workflow`),
     cancel: (id: string) => apiFetch<GgChatResponse>(`/geoguider/conversations/${id}/workflow/cancel`, { method: 'POST' }),
+  },
+
+  // ------------------------------------------------------------------------------------------------ live hazard alerts (feed is fetched by the server)
+  hazards: {
+    status: () => apiFetch<HazardStatus>('/hazard-alerts/status'),
+    list: (q: { kind?: string; unread?: boolean; limit?: number } = {}) => apiFetch<HazardAlert[]>('/hazard-alerts', { query: q }),
+    refresh: (body: { force?: boolean } = {}) => apiFetch<HazardRefresh>('/hazard-alerts/refresh', { method: 'POST', body }),
+    markRead: (body: { ids?: string[]; all?: boolean }) => apiFetch<{ marked_read: number }>('/hazard-alerts/read', { method: 'POST', body }),
   },
 
   // ------------------------------------------------------------------------------------------------ weather alerts (provider key stays on the server)

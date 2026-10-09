@@ -3,84 +3,143 @@
 @tailwind utilities;
 
 :root {
-  --ink-950: #04070c;
-  --ink-900: #070b12;
-  --ink-850: #0a0f18;
-  --ink-800: #0d1420;
-  --line: rgba(148, 163, 184, 0.1);
-  --line-strong: rgba(148, 163, 184, 0.18);
-  --accent: #2dd4bf;
-  --accent-glow: rgba(45, 212, 191, 0.18);
-  --text: #e2e8f0;
-  --muted: #8392a8;
+  /* semantic design tokens (mirrors tailwind.config.ts) */
+  --color-bg-app: #080d0a;
+  --color-bg-secondary: #0b120e;
+  --color-bg-panel: #101913;
+  --color-bg-elevated: #141f18;
+  --color-bg-hover: #1a2920;
+  --color-border: #26372c;
+  --color-border-subtle: #1b2a20;
+  --color-text-primary: #e6eee8;
+  --color-text-secondary: #a3b2a7;
+  --color-text-muted: #718077;
+  --color-text-disabled: #536158;
+  --color-accent: #6ee7a0;
+  --color-accent-hover: #8ff0b8;
+  --color-accent-secondary: #35c978;
+  --color-accent-surface: #153624;
+  --color-accent-border: #2d754a;
+  --color-success: #55d98a;
+  --color-warning: #e8b75a;
+  --color-danger: #f07171;
+  --color-info: #77b8ff;
+  /* legacy names kept for existing references */
+  --ink-950: var(--color-bg-app);
+  --ink-900: var(--color-bg-secondary);
+  --ink-850: var(--color-bg-panel);
+  --ink-800: var(--color-bg-elevated);
+  --line: rgba(120, 170, 140, 0.16);
+  --line-strong: rgba(120, 170, 140, 0.26);
+  --accent: var(--color-accent);
+  --accent-glow: rgba(110, 231, 160, 0.16);
+  --text: var(--color-text-primary);
+  --muted: var(--color-text-muted);
   color-scheme: dark;
 }
 
 html,
 body {
   height: 100%;
-  background: var(--ink-950);
-  color: var(--text);
+  background: var(--color-bg-app);
+  color: var(--color-text-primary);
   font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
   font-size: 13px;
+  font-feature-settings: 'cv11', 'ss01';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: rgba(100, 116, 139, 0.35) transparent;
+  scrollbar-color: rgba(110, 150, 125, 0.32) transparent;
 }
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(100, 116, 139, 0.35);
+  background: rgba(110, 150, 125, 0.32);
   border-radius: 6px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(110, 231, 160, 0.4);
 }
 
 ::selection {
-  background: rgba(45, 212, 191, 0.3);
+  background: rgba(110, 231, 160, 0.28);
 }
 
 /* ---- surfaces ------------------------------------------------------------------------------------------------ */
 @layer components {
   .panel {
-    @apply border border-white/[0.06] bg-ink-850/95 backdrop-blur-md;
+    @apply border border-[color:var(--line)] bg-ink-850/95 backdrop-blur-sm;
   }
   .panel-solid {
-    @apply border border-white/[0.06] bg-ink-850;
+    @apply border border-[color:var(--line)] bg-ink-850;
   }
   .hairline-b {
-    @apply border-b border-white/[0.06];
+    @apply border-b border-[color:var(--line)];
   }
   .hairline-t {
-    @apply border-t border-white/[0.06];
+    @apply border-t border-[color:var(--line)];
   }
   .label {
-    @apply font-mono text-2xs uppercase tracking-[0.14em] text-slate-500;
+    @apply font-mono text-2xs font-medium uppercase tracking-[0.14em] text-slate-500;
   }
   .value-mono {
     @apply font-mono tabular-nums text-slate-200;
   }
   .btn {
-    @apply inline-flex select-none items-center justify-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent/70 disabled:cursor-not-allowed disabled:opacity-40;
+    @apply border-ink-600 bg-ink-800 text-slate-200 hover:bg-ink-700;
+    @apply inline-flex select-none items-center justify-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs font-medium transition-[background-color,border-color,color] duration-150 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent/70 disabled:cursor-not-allowed disabled:opacity-40;
   }
   .focus-ring {
     @apply focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent/70;
   }
 }
 
+/* compact technical labels never wrap (the monospace face is wider than the system one) */
+header .font-mono,
+header .label,
+.label {
+  white-space: nowrap;
+}
+
+/* numerals and technical metadata align in columns */
+table,
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+input,
+select,
+textarea,
+button {
+  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease, box-shadow 150ms ease;
+}
+input::placeholder,
+textarea::placeholder {
+  color: var(--color-text-disabled);
+}
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  border-color: var(--color-accent-border);
+}
+select option {
+  background: var(--color-bg-panel);
+  color: var(--color-text-primary);
+}
+
 /* ---- map libraries ------------------------------------------------------------------------------------------- */
 .maplibregl-ctrl-attrib,
 .maplibregl-ctrl-attrib.maplibregl-compact {
-  background: rgba(4, 7, 12, 0.7) !important;
-  color: #64748b !important;
+  background: rgba(8, 13, 10, 0.72) !important;
+  color: #718077 !important;
   font-size: 10px !important;
 }
 .maplibregl-ctrl-attrib a {
-  color: #94a3b8 !important;
+  color: #91bca0 !important;
 }
 .maplibregl-canvas {
   outline: none;
@@ -106,5 +165,5 @@ body {
 }
 
 input[type='range'] {
-  accent-color: #2dd4bf;
+  accent-color: #6ee7a0;
 }

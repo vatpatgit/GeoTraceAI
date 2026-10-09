@@ -29,6 +29,6 @@ export function syncDrawBox(map: MlMap, box: BBox | null): void {
   const data = boxPolygon(box) as unknown as GeoJSON.Feature
   if (src) { src.setData(data); return }
   map.addSource(SRC, { type: 'geojson', data })
-  map.addLayer({ id: FILL, type: 'fill', source: SRC, paint: { 'fill-color': '#22D3EE', 'fill-opacity': 0.14 } })
-  map.addLayer({ id: LINE, type: 'line', source: SRC, paint: { 'line-color': '#22D3EE', 'line-width': 2, 'line-dasharray': [3, 2] } })
+  map.addLayer({ id: FILL, type: 'fill', source: SRC, paint: { 'fill-color': '#6EE7A0', 'fill-opacity': 0.14 } })
+  map.addLayer({ id: LINE, type: 'line', source: SRC, paint: { 'line-color': '#6EE7A0', 'line-width': 2, 'line-dasharray': [3, 2] } })
 }

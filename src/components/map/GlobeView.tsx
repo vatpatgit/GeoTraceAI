@@ -95,9 +95,9 @@ export default function GlobeView({ onSwitch2D }: { onSwitch2D: () => void }) {
         ro.observe(container.current)
         ;(viewer as unknown as { __ro: ResizeObserver }).__ro = ro
         const scene = viewer.scene
-        scene.globe.baseColor = Cesium.Color.fromCssColorString('#06101c')
+        scene.globe.baseColor = Cesium.Color.fromCssColorString('#0b120e')
         scene.globe.showGroundAtmosphere = true
-        scene.backgroundColor = Cesium.Color.fromCssColorString('#04070c')
+        scene.backgroundColor = Cesium.Color.fromCssColorString('#080D0A')
         scene.globe.depthTestAgainstTerrain = false
 
         // Bottom: offline Natural Earth II (bundled) so something renders even when every online provider is down.
@@ -174,7 +174,7 @@ export default function GlobeView({ onSwitch2D }: { onSwitch2D: () => void }) {
     const preview = viewer.entities.add({
       rectangle: {
         coordinates: new Cesium.CallbackProperty(() => (start && current ? Cesium.Rectangle.fromDegrees(...boxFromCorners(start, current)) : undefined), false),
-        material: Cesium.Color.fromCssColorString('#22D3EE').withAlpha(0.18), outline: true, outlineColor: Cesium.Color.fromCssColorString('#22D3EE'), height: 0,
+        material: Cesium.Color.fromCssColorString('#6EE7A0').withAlpha(0.18), outline: true, outlineColor: Cesium.Color.fromCssColorString('#6EE7A0'), height: 0,
       },
     })
     const pick = (e: PointerEvent): [number, number] | null => {
@@ -218,7 +218,7 @@ export default function GlobeView({ onSwitch2D }: { onSwitch2D: () => void }) {
     const Cesium = cesiumRef.current
     if (!viewer || !Cesium || state !== 'ready' || !drawnBox) return
     const e = viewer.entities.add({
-      rectangle: { coordinates: Cesium.Rectangle.fromDegrees(...drawnBox), material: Cesium.Color.fromCssColorString('#22D3EE').withAlpha(0.15), outline: true, outlineColor: Cesium.Color.fromCssColorString('#22D3EE'), height: 0 },
+      rectangle: { coordinates: Cesium.Rectangle.fromDegrees(...drawnBox), material: Cesium.Color.fromCssColorString('#6EE7A0').withAlpha(0.15), outline: true, outlineColor: Cesium.Color.fromCssColorString('#6EE7A0'), height: 0 },
     })
     viewer.scene.requestRender()
     return () => { if (!viewer.isDestroyed()) { viewer.entities.remove(e); viewer.scene.requestRender() } }
@@ -352,7 +352,7 @@ export default function GlobeView({ onSwitch2D }: { onSwitch2D: () => void }) {
     if (showChange) addFeatures(Cesium, ds, fc, selectedId)
     if (showAoi && analysis?.bounds) {
       const [w, s, e, n] = analysis.bounds
-      ds.entities.add({ id: 'aoi-outline', polyline: { positions: Cesium.Cartesian3.fromDegreesArray([w, s, e, s, e, n, w, n, w, s]), width: 1.6, clampToGround: true, material: new Cesium.PolylineDashMaterialProperty({ color: Cesium.Color.fromCssColorString('#2DD4BF'), dashLength: 14 }) } })
+      ds.entities.add({ id: 'aoi-outline', polyline: { positions: Cesium.Cartesian3.fromDegreesArray([w, s, e, s, e, n, w, n, w, s]), width: 1.6, clampToGround: true, material: new Cesium.PolylineDashMaterialProperty({ color: Cesium.Color.fromCssColorString('#6EE7A0'), dashLength: 14 }) } })
     }
     if (showAoi) {
       for (const r of regions) {

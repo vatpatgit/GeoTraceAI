@@ -65,7 +65,7 @@ export default function SettingsPage() {
             {sys.ml.models.length === 0 ? <p className="text-xs text-slate-500">No model cards found. Only the baseline (spectral) detectors are available.</p> : (
               <ul className="space-y-3">
                 {sys.ml.models.map((m) => (
-                  <li key={m.id} className="rounded-md border border-white/[0.06] p-3">
+                  <li key={m.id} className="rounded-md border border-[color:var(--line)] p-3">
                     <div className="flex flex-wrap items-center gap-2 text-xs text-slate-100">{m.name} {yes(m.available, 'weights present', 'weights missing')}<Chip>{m.dataset}</Chip></div>
                     <p className="mt-1 text-2xs text-slate-400">{m.description}</p>
                     {m.metrics.test && <p className="mt-1 font-mono text-2xs text-slate-300">Held-out {m.dataset} test set ({m.metrics.test.num_samples} samples): F1 {formatPct(m.metrics.test.f1)} · IoU {formatPct(m.metrics.test.change_iou)} · P {formatPct(m.metrics.test.precision)} · R {formatPct(m.metrics.test.recall)}</p>}

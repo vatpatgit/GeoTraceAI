@@ -72,7 +72,7 @@ export default function GeoGuider() {
   if (!s.open) {
     return (
       <button ref={launcherRef} onClick={() => s.setOpen(true)} aria-label="Open GeoGuider assistant" title="GeoGuider: AI geospatial copilot"
-        className="focus-ring fixed bottom-4 right-4 z-[60] flex items-center gap-2 rounded-full border border-accent/40 bg-ink-900 px-3.5 py-2.5 text-xs font-medium text-accent shadow-xl shadow-black/60 hover:bg-accent/10">
+        className="focus-ring fixed bottom-4 right-4 z-[60] flex items-center gap-2 rounded-full border border-accent-dim bg-ink-900 px-3.5 py-2.5 text-xs font-medium text-accent shadow-xl shadow-black/60 hover:bg-accent/10">
         <Compass className="h-4 w-4" aria-hidden /> GeoGuider
         {running && <span className="h-2 w-2 animate-pulse rounded-full bg-accent" aria-label="An analysis is running" />}
       </button>
@@ -82,7 +82,7 @@ export default function GeoGuider() {
   return (
     <section role="dialog" aria-label="GeoGuider assistant" onKeyDown={(e) => { if (e.key === 'Escape') { s.setOpen(false); launcherRef.current?.focus() } }}
       className="panel-solid fixed bottom-4 right-4 z-[60] flex h-[min(680px,calc(100vh-2rem))] w-[420px] max-w-[calc(100vw-2rem)] flex-col rounded-lg shadow-2xl shadow-black/70 max-sm:inset-x-2 max-sm:bottom-2 max-sm:w-auto max-sm:max-w-none">
-      <header className="flex items-center gap-2 border-b border-white/[0.06] px-3 py-2">
+      <header className="flex items-center gap-2 border-b border-[color:var(--line)] px-3 py-2">
         <Compass className="h-4 w-4 text-accent" aria-hidden />
         <div className="min-w-0 flex-1">
           <h2 className="text-sm font-semibold text-slate-100">GeoGuider</h2>
@@ -97,7 +97,7 @@ export default function GeoGuider() {
         {s.status && !s.status.llm.configured && s.status.llm.note && <p className="rounded-md border border-amber-400/20 bg-amber-400/[0.05] px-2.5 py-1.5 text-2xs text-amber-200">{s.status.llm.note}</p>}
         {s.messages.length === 0 && (
           <div className="flex flex-wrap gap-1.5" aria-label="Suggested prompts">
-            {starters.map((x) => <button key={x.text} onClick={() => void submit(x.text)} className="focus-ring rounded-full border border-white/10 px-2.5 py-1 text-2xs text-slate-300 hover:border-accent/40 hover:text-accent">{x.text}</button>)}
+            {starters.map((x) => <button key={x.text} onClick={() => void submit(x.text)} className="focus-ring rounded-full border border-[color:var(--line-strong)] px-2.5 py-1 text-2xs text-slate-300 hover:border-accent-dim hover:text-accent">{x.text}</button>)}
           </div>
         )}
         {s.messages.map((m) => (
@@ -114,16 +114,16 @@ export default function GeoGuider() {
       </div>
 
       {s.suggestions.length > 0 && !s.busy && (
-        <div className="flex flex-wrap gap-1.5 border-t border-white/[0.06] px-3 py-2" aria-label="Suggested follow-ups">
-          {s.suggestions.map((t) => <button key={t} onClick={() => void submit(t)} className="focus-ring rounded-full border border-white/10 px-2.5 py-0.5 text-2xs text-slate-300 hover:border-accent/40 hover:text-accent">{t}</button>)}
+        <div className="flex flex-wrap gap-1.5 border-t border-[color:var(--line)] px-3 py-2" aria-label="Suggested follow-ups">
+          {s.suggestions.map((t) => <button key={t} onClick={() => void submit(t)} className="focus-ring rounded-full border border-[color:var(--line-strong)] px-2.5 py-0.5 text-2xs text-slate-300 hover:border-accent-dim hover:text-accent">{t}</button>)}
         </div>
       )}
-      <form className="flex items-end gap-2 border-t border-white/[0.06] p-2.5" onSubmit={(e) => { e.preventDefault(); void submit(draft) }}>
+      <form className="flex items-end gap-2 border-t border-[color:var(--line)] p-2.5" onSubmit={(e) => { e.preventDefault(); void submit(draft) }}>
         <label htmlFor="geoguider-input" className="sr-only">Message GeoGuider</label>
         <textarea id="geoguider-input" ref={inputRef} value={draft} rows={1} maxLength={1000} placeholder="Ask about an area, a period, or your results…"
           onChange={(e) => setDraft(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); void submit(draft) } }}
-          className="focus-ring max-h-28 min-h-[2.25rem] flex-1 resize-none rounded-md border border-white/10 bg-black/30 px-2.5 py-2 text-xs text-slate-100 placeholder:text-slate-600" />
-        <button type="submit" disabled={s.busy || !draft.trim()} aria-label="Send message" className="focus-ring inline-flex h-9 w-9 items-center justify-center rounded-md border border-accent/40 bg-accent/10 text-accent hover:bg-accent/20 disabled:opacity-40"><Send className="h-4 w-4" /></button>
+          className="focus-ring max-h-28 min-h-[2.25rem] flex-1 resize-none rounded-md border border-[color:var(--line-strong)] bg-black/30 px-2.5 py-2 text-xs text-slate-100 placeholder:text-slate-600" />
+        <button type="submit" disabled={s.busy || !draft.trim()} aria-label="Send message" className="focus-ring inline-flex h-9 w-9 items-center justify-center rounded-md border border-accent-dim bg-accent-surface text-accent hover:bg-[#1a4430] disabled:opacity-40"><Send className="h-4 w-4" /></button>
       </form>
     </section>
   )

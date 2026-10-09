@@ -53,8 +53,8 @@ export default function AoiPickerMap({ center, radiusM, onPick, scenes }: { cent
       if (src) src.setData(data)
       else {
         map.addSource('aoi', { type: 'geojson', data })
-        map.addLayer({ id: 'aoi-fill', type: 'fill', source: 'aoi', paint: { 'fill-color': '#2DD4BF', 'fill-opacity': 0.15 } })
-        map.addLayer({ id: 'aoi-line', type: 'line', source: 'aoi', paint: { 'line-color': '#2DD4BF', 'line-width': 2 } })
+        map.addLayer({ id: 'aoi-fill', type: 'fill', source: 'aoi', paint: { 'fill-color': '#6EE7A0', 'fill-opacity': 0.15 } })
+        map.addLayer({ id: 'aoi-line', type: 'line', source: 'aoi', paint: { 'line-color': '#6EE7A0', 'line-width': 2 } })
       }
     }
     if (map.isStyleLoaded()) apply(); else map.once('load', apply)
@@ -65,5 +65,5 @@ export default function AoiPickerMap({ center, radiusM, onPick, scenes }: { cent
     if (map && center) map.easeTo({ center, zoom: Math.max(map.getZoom(), 9), duration: 600 })
   }, [center])
 
-  return <div ref={el} className="h-64 w-full overflow-hidden rounded-md border border-white/10" role="application" aria-label="Click the map to set the area centre" />
+  return <div ref={el} className="h-64 w-full overflow-hidden rounded-md border border-[color:var(--line-strong)]" role="application" aria-label="Click the map to set the area centre" />
 }

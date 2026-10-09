@@ -7,6 +7,7 @@ from app.models.change_event import ChangeFeature
 from app.models.alert import AlertRule, AlertIncident
 from app.models.layer import LayerCatalog
 from app.models.weather import WeatherAlert, WeatherAlertEvent, WeatherAoiState
+from app.models.hazard import HazardAlert
 from app.models.geoguider import GeoGuiderConversation, GeoGuiderMessage
 
 __all__ = [
@@ -26,6 +27,7 @@ __all__ = [
     "WeatherAlert",
     "WeatherAlertEvent",
     "WeatherAoiState",
+    "HazardAlert",
     "GeoGuiderConversation",
     "GeoGuiderMessage",
 ]

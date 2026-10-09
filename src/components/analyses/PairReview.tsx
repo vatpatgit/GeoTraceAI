@@ -139,7 +139,7 @@ export default function PairReview({ projectId, before, after, inputType, acquis
           {compareError && <Button tone="ghost" onClick={() => void compareNow()}>Try again</Button>}
         </div>
       )}
-      <div className="rounded-md border border-white/[0.07] bg-black/20 p-3">
+      <div className="rounded-md border border-[color:var(--line-strong)] bg-black/20 p-3">
         <div className="mb-2 flex items-center gap-2 text-xs font-medium text-slate-200">
           {validation.ok ? <CheckCircle2 className="h-4 w-4 text-emerald-400" aria-hidden /> : <Ban className="h-4 w-4 text-red-400" aria-hidden />}
           {validation.ok ? 'Pair is compatible' : 'Pair cannot be processed'}
@@ -165,7 +165,7 @@ export default function PairReview({ projectId, before, after, inputType, acquis
             {METHODS.map((m) => {
               const disabled = (m.id === 'ndvi_diff' && !hasNdvi) || (m.id === 'learned_siamese' && !validation.model_available)
               return (
-                <label key={m.id} className={cn('flex cursor-pointer gap-2.5 rounded-md border p-2.5 transition-colors', method === m.id ? 'border-accent/40 bg-accent/[0.06]' : 'border-white/[0.07] hover:bg-white/[0.03]', disabled && 'cursor-not-allowed opacity-45')}>
+                <label key={m.id} className={cn('flex cursor-pointer gap-2.5 rounded-md border p-2.5 transition-colors', method === m.id ? 'border-accent-dim bg-accent/[0.06]' : 'border-[color:var(--line-strong)] hover:bg-ink-800/70', disabled && 'cursor-not-allowed opacity-45')}>
                   <input type="radio" name="method" className="mt-0.5" checked={method === m.id} disabled={disabled} onChange={() => setMethod(m.id)} />
                   <span className="min-w-0">
                     <span className="flex items-center gap-2 text-xs text-slate-100">{m.label}{m.id === 'auto' && <Chip tone="accent">suggests: {validation.suggested_method.replace(/_/g, ' ')}</Chip>}{disabled && <Chip tone="warn">{m.id === 'ndvi_diff' ? 'needs red + NIR' : 'not installed'}</Chip>}</span>
@@ -178,7 +178,7 @@ export default function PairReview({ projectId, before, after, inputType, acquis
           </fieldset>
 
           {(method === 'learned_siamese' || (method === 'auto' && validation.suggested_method === 'learned_siamese')) && model && (
-            <div className="rounded-md border border-white/[0.07] p-2.5 text-2xs text-slate-400">
+            <div className="rounded-md border border-[color:var(--line-strong)] p-2.5 text-2xs text-slate-400">
               <div className="text-xs text-slate-200">{model.name}</div>
               {model.metrics.test && <p className="mt-1">Held-out benchmark on its own dataset: F1 {model.metrics.test.f1.toFixed(2)}, precision {model.metrics.test.precision.toFixed(2)}, recall {model.metrics.test.recall.toFixed(2)} ({model.metrics.test.num_samples} samples). This is not a measurement of accuracy on your imagery.</p>}
               <ul className="mt-1 list-disc pl-4 text-amber-200/80">{model.limitations.slice(0, 3).map((l) => <li key={l}>{l}</li>)}</ul>
@@ -186,7 +186,7 @@ export default function PairReview({ projectId, before, after, inputType, acquis
             </div>
           )}
 
-          <details className="rounded-md border border-white/[0.07] p-2.5">
+          <details className="rounded-md border border-[color:var(--line-strong)] p-2.5">
             <summary className="cursor-pointer text-xs text-slate-300">Advanced options</summary>
             <div className="mt-3 grid gap-3 md:grid-cols-2">
               <Field label={`Sensitivity (threshold = ${sigmaK} robust sigma)`} hint="Lower finds more, fainter change (and more false positives). Applies to the spectral baseline.">

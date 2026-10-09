@@ -11,6 +11,7 @@ import { useAppStore } from '@/store/useAppStore'
 import { Button, Chip, DemoBadge, EmptyBlock, ErrorBlock, Field, inputCls, Segmented, SeverityBadge, Skeleton, Switch } from '@/components/ui/kit'
 import PageFrame, { Card } from './PageFrame'
 import WeatherAlertsSection from './WeatherAlertsSection'
+import HazardAlertsSection from './HazardAlertsSection'
 
 const STATUS_TONE: Record<IncidentStatus, 'danger' | 'warn' | 'ok'> = { open: 'danger', acknowledged: 'warn', resolved: 'ok' }
 const CATEGORIES = ['vegetation_decrease', 'vegetation_increase', 'vegetation_change', 'building_change', 'land_cover_change', 'unclassified_change']
@@ -40,7 +41,7 @@ function IncidentRow({ inc, onChange, writable }: { inc: Incident; onChange: () 
   }
 
   return (
-    <li className="border-b border-white/[0.05] last:border-0">
+    <li className="border-b border-[color:var(--line)] last:border-0">
       <div className="flex items-start gap-2 px-3 py-2.5">
         <button aria-label={open ? 'Hide evidence' : 'Show evidence'} aria-expanded={open} onClick={() => setOpen(!open)} className="focus-ring mt-0.5 text-slate-500 hover:text-slate-200">{open ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}</button>
         <div className="min-w-0 flex-1">
@@ -61,7 +62,7 @@ function IncidentRow({ inc, onChange, writable }: { inc: Incident; onChange: () 
         </div>
       </div>
       {open && (
-        <div className="mx-3 mb-3 ml-8 space-y-2 rounded-md border border-white/[0.06] bg-black/20 p-3 text-2xs text-slate-400">
+        <div className="mx-3 mb-3 ml-8 space-y-2 rounded-md border border-[color:var(--line)] bg-black/20 p-3 text-2xs text-slate-400">
           <p className="text-slate-300">Why this alert fired (stored evidence — values at evaluation time):</p>
           <pre className="max-h-56 overflow-auto whitespace-pre-wrap break-words font-mono text-[11px] leading-relaxed">{JSON.stringify({ matched: inc.evidence.matched, rule: inc.evidence.rule }, null, 2)}</pre>
           {inc.evidence.notice && <p className="text-amber-200/80">{inc.evidence.notice}</p>}
@@ -120,7 +121,7 @@ function RuleEditor({ initial, onSaved, onCancel }: { initial: AlertRule | null;
           <div className="mt-1 flex flex-wrap gap-1.5">
             {CATEGORIES.map((c) => {
               const on = f.categories?.includes(c) ?? false
-              return <button type="button" key={c} aria-pressed={on} onClick={() => set('categories', on ? (f.categories ?? []).filter((x) => x !== c) : [...(f.categories ?? []), c])} className={cn('focus-ring rounded border px-2 py-0.5 text-2xs', on ? 'border-accent/40 bg-accent/10 text-accent' : 'border-white/10 text-slate-400 hover:text-slate-200')}>{categoryLabel(c)}</button>
+              return <button type="button" key={c} aria-pressed={on} onClick={() => set('categories', on ? (f.categories ?? []).filter((x) => x !== c) : [...(f.categories ?? []), c])} className={cn('focus-ring rounded border px-2 py-0.5 text-2xs', on ? 'border-accent-dim bg-accent-surface text-accent' : 'border-[color:var(--line-strong)] text-slate-400 hover:text-slate-200')}>{categoryLabel(c)}</button>
             })}
           </div>
         </div>
@@ -168,15 +169,17 @@ export default function AlertsPage() {
   return (
     <PageFrame wide title="Alert centre" subtitle="Alerts are raised when a stored detection satisfies a rule. Each detection raises at most one incident per rule; severity is a heuristic tier, not a probability.">
       <div className="grid grid-cols-3 gap-3 text-xs md:grid-cols-6">
-        {(['open', 'acknowledged', 'resolved'] as const).map((s) => <div key={s} className="rounded-md border border-white/[0.07] bg-ink-900/60 p-2.5"><div className="label">{s}</div><div className="mt-0.5 font-mono text-lg text-slate-100">{stats.data?.by_status[s] ?? (stats.loading ? '…' : 0)}</div></div>)}
-        {SEVERITIES.slice().reverse().slice(0, 3).map((s) => <div key={s} className="rounded-md border border-white/[0.07] bg-ink-900/60 p-2.5"><div className="label">unresolved {s}</div><div className="mt-0.5 font-mono text-lg text-slate-100">{stats.data?.unresolved_by_severity[s] ?? (stats.loading ? '…' : 0)}</div></div>)}
+        {(['open', 'acknowledged', 'resolved'] as const).map((s) => <div key={s} className="rounded-md border border-[color:var(--line-strong)] bg-ink-900/60 p-2.5"><div className="label">{s}</div><div className="mt-0.5 font-mono text-lg text-slate-100">{stats.data?.by_status[s] ?? (stats.loading ? '…' : 0)}</div></div>)}
+        {SEVERITIES.slice().reverse().slice(0, 3).map((s) => <div key={s} className="rounded-md border border-[color:var(--line-strong)] bg-ink-900/60 p-2.5"><div className="label">unresolved {s}</div><div className="mt-0.5 font-mono text-lg text-slate-100">{stats.data?.unresolved_by_severity[s] ?? (stats.loading ? '…' : 0)}</div></div>)}
       </div>
+
+      <HazardAlertsSection />
 
       <Card title="Incidents" action={
         <div className="flex flex-wrap items-center gap-2">
           <Segmented label="Status filter" size="sm" value={status} onChange={(v) => { setStatus(v); setPage(0) }} options={[{ value: 'open', label: 'Open' }, { value: 'acknowledged', label: 'Ack' }, { value: 'resolved', label: 'Resolved' }, { value: 'all', label: 'All' }]} />
           <div className="flex gap-1" role="group" aria-label="Severity filter">
-            {SEVERITIES.map((s) => <button key={s} aria-pressed={severity.includes(s)} onClick={() => { setSeverity(severity.includes(s) ? severity.filter((x) => x !== s) : [...severity, s]); setPage(0) }} className={cn('focus-ring rounded border px-1.5 py-0.5 font-mono text-2xs uppercase', severity.includes(s) ? 'border-accent/40 bg-accent/10 text-accent' : 'border-white/10 text-slate-500 hover:text-slate-200')}>{s}</button>)}
+            {SEVERITIES.map((s) => <button key={s} aria-pressed={severity.includes(s)} onClick={() => { setSeverity(severity.includes(s) ? severity.filter((x) => x !== s) : [...severity, s]); setPage(0) }} className={cn('focus-ring rounded border px-1.5 py-0.5 font-mono text-2xs uppercase', severity.includes(s) ? 'border-accent-dim bg-accent-surface text-accent' : 'border-[color:var(--line-strong)] text-slate-500 hover:text-slate-200')}>{s}</button>)}
           </div>
         </div>}>
         <div className="-m-3">
@@ -185,7 +188,7 @@ export default function AlertsPage() {
           {inc.data && inc.data.items.length === 0 && <EmptyBlock title="No incidents match" hint={rules.data?.length ? 'Alerts appear when a completed analysis contains detections that satisfy a rule.' : 'Create a rule below; new analyses are evaluated against enabled rules automatically.'} />}
           {inc.data && inc.data.items.length > 0 && <ul>{inc.data.items.map((i) => <IncidentRow key={i.id} inc={i} writable={writable} onChange={refresh} />)}</ul>}
           {inc.data && inc.data.total > PAGE && (
-            <div className="flex items-center justify-between border-t border-white/[0.06] px-3 py-2 text-2xs text-slate-500">
+            <div className="flex items-center justify-between border-t border-[color:var(--line)] px-3 py-2 text-2xs text-slate-500">
               <span>{page * PAGE + 1}–{Math.min((page + 1) * PAGE, inc.data.total)} of {inc.data.total}</span>
               <span className="space-x-1"><Button tone="ghost" disabled={page === 0} onClick={() => setPage(page - 1)}>Previous</Button><Button tone="ghost" disabled={(page + 1) * PAGE >= inc.data.total} onClick={() => setPage(page + 1)}>Next</Button></span>
             </div>
@@ -201,7 +204,7 @@ export default function AlertsPage() {
             <thead className="text-slate-500"><tr><th className="label py-1.5 font-normal">Rule</th><th className="label font-normal">Scope</th><th className="label font-normal">Thresholds</th><th className="label text-right font-normal">Incidents</th><th className="label pl-3 font-normal">Last evaluated</th><th /></tr></thead>
             <tbody>
               {rules.data.map((r) => (
-                <tr key={r.id} className="border-t border-white/[0.05]">
+                <tr key={r.id} className="border-t border-[color:var(--line)]">
                   <td className="py-2"><div className="flex items-center gap-2"><Switch checked={r.enabled} onChange={() => void toggle(r)} label={`${r.enabled ? 'Disable' : 'Enable'} ${r.name}`} disabled={!writable} /><span className={r.enabled ? 'text-slate-100' : 'text-slate-500'}>{r.name}</span></div></td>
                   <td className="text-slate-400">{scope(r)}</td>
                   <td className="font-mono text-2xs text-slate-400">≥{r.min_severity} · ≥{formatArea(r.min_area_m2)}{r.min_confidence != null && ` · score ≥${r.min_confidence}`}{r.categories?.length ? ` · ${r.categories.length} cat.` : ''}</td>

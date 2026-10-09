@@ -25,7 +25,7 @@ function Chip2({ analysisId, featureId, layer, label }: { analysisId: string; fe
   }, [analysisId, featureId, layer])
   return (
     <figure className="min-w-0 flex-1">
-      <div className="relative aspect-square overflow-hidden rounded border border-white/10 bg-black/40">
+      <div className="relative aspect-square overflow-hidden rounded border border-[color:var(--line-strong)] bg-black/40">
         {/* authenticated blob URL: next/image cannot fetch it */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         {url ? <img src={url} alt={`${label} imagery around the selected change`} className="h-full w-full object-cover" /> : failed ? <div className="flex h-full items-center justify-center p-2 text-center text-2xs text-slate-600">Evidence image unavailable</div> : <Skeleton className="h-full w-full" />}

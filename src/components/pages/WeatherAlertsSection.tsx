@@ -42,7 +42,7 @@ export function WeatherAlertDetails({ a }: { a: WeatherAlert }) {
 
 function AlertRow({ a, selected, onShow }: { a: WeatherAlert; selected: boolean; onShow: () => void }) {
   return (
-    <li className={cn('border-b border-white/[0.05] px-3 py-3 last:border-0', selected && 'bg-accent/[0.05]')} style={{ borderLeft: `3px solid ${WEATHER_COLOR[a.severity]}` }}>
+    <li className={cn('border-b border-[color:var(--line)] px-3 py-3 last:border-0', selected && 'bg-accent/[0.05]')} style={{ borderLeft: `3px solid ${WEATHER_COLOR[a.severity]}` }}>
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
@@ -186,7 +186,7 @@ export default function WeatherAlertsSection() {
       {error && <ErrorBlock title="Weather alerts" message={error} onRetry={() => void (aoiId ? refresh(false) : load())} />}
       {!error && state?.last_status === 'error' && state.last_error && <p role="alert" className="mb-2 text-2xs text-red-300">Last refresh failed: {state.last_error}</p>}
 
-      <div className="-mx-3 -mb-3 border-t border-white/[0.06]">
+      <div className="-mx-3 -mb-3 border-t border-[color:var(--line)]">
         {loading && items.length === 0 ? <div className="space-y-2 p-3"><Skeleton className="h-14" /><Skeleton className="h-14" /></div>
           : shown.length === 0 ? (
             <EmptyBlock title={state?.last_checked_at ? 'No active weather alerts for this area' : 'No alerts retrieved yet'}

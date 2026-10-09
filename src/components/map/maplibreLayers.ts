@@ -131,8 +131,8 @@ export function syncLayers(map: MlMap, ctx: SyncContext): void {
   const showAoi = vis(ctx, 'aoi')
   const aoiFc: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features: ctx.bounds && analysisId ? [boundsPolygon(ctx.bounds) as GeoJSON.Feature] : [] }
   ensureGeoJson(map, 'aoi', aoiFc)
-  if (!map.getLayer('aoi-fill')) map.addLayer({ id: 'aoi-fill', type: 'fill', source: 'aoi', paint: { 'fill-color': '#2DD4BF', 'fill-opacity': 0.03 } }, beforeIdFor(map, 'aoi-fill'))
-  if (!map.getLayer('aoi-line')) map.addLayer({ id: 'aoi-line', type: 'line', source: 'aoi', paint: { 'line-color': '#2DD4BF', 'line-width': 1.4, 'line-dasharray': [3, 2], 'line-opacity': 0.9 } }, beforeIdFor(map, 'aoi-line'))
+  if (!map.getLayer('aoi-fill')) map.addLayer({ id: 'aoi-fill', type: 'fill', source: 'aoi', paint: { 'fill-color': '#6EE7A0', 'fill-opacity': 0.03 } }, beforeIdFor(map, 'aoi-fill'))
+  if (!map.getLayer('aoi-line')) map.addLayer({ id: 'aoi-line', type: 'line', source: 'aoi', paint: { 'line-color': '#6EE7A0', 'line-width': 1.4, 'line-dasharray': [3, 2], 'line-opacity': 0.9 } }, beforeIdFor(map, 'aoi-line'))
   const regionFc: GeoJSON.FeatureCollection = {
     type: 'FeatureCollection',
     features: ctx.regions.filter((r) => r.geometry).map((r) => ({ type: 'Feature', id: r.id, properties: { id: r.id, name: r.name, risk: r.risk_level }, geometry: r.geometry as GeoJSON.Geometry })),

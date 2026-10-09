@@ -92,6 +92,19 @@ class Settings(BaseSettings):
     GEOCODER_USER_AGENT: str = "GeoTraceAI/1.0 (self-hosted; contact: set GEOCODER_USER_AGENT)"
     GEOCODER_TIMEOUT_S: float = 12.0
 
+    # --- live hazard feed (earthquakes, fire hotspots, storms) matched against saved AOIs; server-side only ---
+    HAZARD_FEED_PROVIDER: Literal["osiris", "none"] = "osiris"
+    HAZARD_FEED_URL: str = "https://osirisai.live/api"  # configuration, never user input
+    HAZARD_TIMEOUT_S: float = 25.0
+    HAZARD_REFRESH_MINUTES: int = 0  # >0: scheduled refresh for all AOIs (embedded runner only); min 2
+    HAZARD_MIN_REFRESH_S: int = 60  # the upstream feed is re-fetched at most this often, however many users ask
+    HAZARD_QUAKE_MIN_MAG: float = 4.0
+    HAZARD_QUAKE_RADIUS_KM: float = 300.0
+    HAZARD_FIRE_RADIUS_KM: float = 25.0
+    HAZARD_STORM_RADIUS_KM: float = 500.0
+    HAZARD_MAX_AGE_HOURS: int = 48  # earthquakes / fire hotspots older than this are ignored
+    HAZARD_STORM_MAX_AGE_HOURS: int = 168
+
     # --- environmental layers ----------------------------------------------------------------------------------
     FIRMS_MAP_KEY: Optional[str] = None
     # OpenWeather Alerts API (server-side key only; the Alerts product needs a suitable OpenWeather plan)

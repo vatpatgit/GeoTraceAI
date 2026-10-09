@@ -119,7 +119,7 @@ export default function ImageCompareView() {
 
   return (
     <div className="absolute inset-0 flex flex-col bg-ink-950">
-      <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-white/[0.06] px-3 py-2">
+      <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-[color:var(--line)] px-3 py-2">
         <div className="flex items-center gap-2">
           <Segmented label="Comparison layout" size="sm" value={layout} onChange={setLayout} options={[{ value: 'slider', label: 'Slider' }, { value: 'side', label: 'Side by side' }]} />
           <div className="flex items-center gap-0.5">
@@ -131,7 +131,7 @@ export default function ImageCompareView() {
         <div className="flex items-center gap-3">
           <label className="flex items-center gap-1.5 text-2xs text-slate-400" title="Optional: ground size of one pixel. Without it areas are shown as a share of the image.">
             Pixel size (m)
-            <input aria-label="Pixel size in metres" inputMode="decimal" value={pixel} onChange={(e) => setPixel(e.target.value)} placeholder="optional" className="focus-ring w-20 rounded border border-white/10 bg-black/30 px-1.5 py-0.5 font-mono text-2xs text-slate-100" />
+            <input aria-label="Pixel size in metres" inputMode="decimal" value={pixel} onChange={(e) => setPixel(e.target.value)} placeholder="optional" className="focus-ring w-20 rounded border border-[color:var(--line-strong)] bg-black/30 px-1.5 py-0.5 font-mono text-2xs text-slate-100" />
           </label>
           {fc && <Button tone="ghost" onClick={() => void run(Number(pixel) > 0 ? Number(pixel) : null)} disabled={status === 'loading'}>Re-run</Button>}
           <label className="flex items-center gap-1.5 text-2xs text-slate-300" title="Run the learned change-detection model on the two images and highlight what it flags on the after image">
@@ -149,7 +149,7 @@ export default function ImageCompareView() {
               <>
                 <Layer img={pair.after} label="After image" withChanges />
                 <Layer img={pair.before} label="Before image" clipRightPct={(1 - pos) * 100} />
-                <div className="pointer-events-none absolute left-2 top-2 z-10 rounded border border-white/10 bg-ink-900/85 px-2 py-1 font-mono text-2xs uppercase tracking-wider text-slate-300">Before · {pair.before.name}</div>
+                <div className="pointer-events-none absolute left-2 top-2 z-10 rounded border border-[color:var(--line-strong)] bg-ink-900/85 px-2 py-1 font-mono text-2xs uppercase tracking-wider text-slate-300">Before · {pair.before.name}</div>
                 <div className="pointer-events-none absolute right-2 top-2 z-10 rounded border border-accent/30 bg-ink-900/85 px-2 py-1 font-mono text-2xs uppercase tracking-wider text-accent">After · {pair.after.name}</div>
                 <div role="slider" tabIndex={0} aria-label="Before and after comparison position" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(pos * 100)}
                   onKeyDown={(e) => { if (e.key === 'ArrowLeft') setPos((p) => Math.max(0, p - (e.shiftKey ? 0.1 : 0.02))); if (e.key === 'ArrowRight') setPos((p) => Math.min(1, p + (e.shiftKey ? 0.1 : 0.02))) }}
@@ -157,23 +157,23 @@ export default function ImageCompareView() {
                   onPointerMove={(e) => { if (!sliding.current) return; const r = (e.currentTarget.parentElement as HTMLElement).getBoundingClientRect(); setPos(Math.min(1, Math.max(0, (e.clientX - r.left) / r.width))) }}
                   onPointerUp={() => { sliding.current = false }}
                   className="focus-ring absolute bottom-0 top-0 z-20 -ml-3 flex w-6 cursor-ew-resize items-center justify-center" style={{ left: `${pos * 100}%` }}>
-                  <div className="h-full w-px bg-accent shadow-[0_0_10px_rgba(45,212,191,0.8)]" />
+                  <div className="h-full w-px bg-accent shadow-[0_0_10px_rgba(110,231,160,0.7)]" />
                   <div className="absolute flex h-8 w-5 items-center justify-center rounded-full border border-accent/70 bg-ink-900 text-accent shadow-lg"><span className="font-mono text-[10px] leading-none">&#8660;</span></div>
                 </div>
               </>, 'single'))
           : (
             <div className="grid h-full grid-cols-2 gap-2">
-              {fit(frame(<><Layer img={pair.before} label="Before image" /><div className="pointer-events-none absolute left-2 top-2 z-10 rounded border border-white/10 bg-ink-900/85 px-2 py-1 font-mono text-2xs uppercase tracking-wider text-slate-300">Before · {pair.before.name}</div></>, 'left'))}
+              {fit(frame(<><Layer img={pair.before} label="Before image" /><div className="pointer-events-none absolute left-2 top-2 z-10 rounded border border-[color:var(--line-strong)] bg-ink-900/85 px-2 py-1 font-mono text-2xs uppercase tracking-wider text-slate-300">Before · {pair.before.name}</div></>, 'left'))}
               {fit(frame(<><Layer img={pair.after} label="After image" withChanges /><div className="pointer-events-none absolute right-2 top-2 z-10 rounded border border-accent/30 bg-ink-900/85 px-2 py-1 font-mono text-2xs uppercase tracking-wider text-accent">After · {pair.after.name}</div></>, 'right'))}
             </div>
           )}
         </div>
 
         <div className="pointer-events-none absolute bottom-3 left-1/2 z-30 flex -translate-x-1/2 flex-col items-center gap-1.5">
-          {status === 'loading' && <div role="status" className="pointer-events-auto rounded border border-white/10 bg-ink-900/90 px-2 py-1 text-2xs text-slate-300">Running the change-detection model…</div>}
+          {status === 'loading' && <div role="status" className="pointer-events-auto rounded border border-[color:var(--line-strong)] bg-ink-900/90 px-2 py-1 text-2xs text-slate-300">Running the change-detection model…</div>}
           {error && <div role="alert" className="pointer-events-auto max-w-md rounded border border-red-500/30 bg-ink-900/95 px-2 py-1 text-2xs text-red-300">{error}</div>}
           {show && meta && (
-            <div role="status" className="pointer-events-auto max-w-lg rounded border border-white/10 bg-ink-900/95 px-2.5 py-2 text-2xs text-slate-300">
+            <div role="status" className="pointer-events-auto max-w-lg rounded border border-[color:var(--line-strong)] bg-ink-900/95 px-2.5 py-2 text-2xs text-slate-300">
               <div className="flex items-start justify-between gap-2">
                 <span><span className="font-mono text-slate-100">{meta.feature_count}</span> area{meta.feature_count === 1 ? '' : 's'} flagged · <span className="font-mono text-slate-100">{(meta.stats.changed_fraction * 100).toFixed(2)}%</span> of the image
                   {meta.pixel_size_known && meta.total_changed_area_m2 !== null ? ` · ${formatArea(meta.total_changed_area_m2)}` : ''}</span>

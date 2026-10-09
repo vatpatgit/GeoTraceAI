@@ -29,13 +29,13 @@ export default function OverviewPage() {
 
   return (
     <PageFrame title="Overview" subtitle="Totals are computed from stored analysis results across everything you can access."
-      actions={<Link href="/analyses/new" className="btn border-accent/40 bg-accent/10 text-accent hover:bg-accent/20">New analysis</Link>}>
+      actions={<Link href="/analyses/new" className="btn border-accent-dim bg-accent-surface text-accent hover:bg-[#1a4430]">New analysis</Link>}>
       {ov.error && <ErrorBlock message={ov.error} onRetry={ov.reload} />}
       {ov.loading && !o && <div className="grid grid-cols-2 gap-3 md:grid-cols-4">{[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-16" />)}</div>}
       {o && (
         <>
           {o.has_demo && <div className="flex items-center gap-2 rounded-md border border-demo/30 bg-demo/[0.06] px-3 py-2 text-xs text-slate-300"><DemoBadge /> Totals below include seeded demonstration analyses (synthetic imagery).</div>}
-          <div className="grid grid-cols-2 gap-4 rounded-md border border-white/[0.07] bg-ink-900/60 p-4 md:grid-cols-5">
+          <div className="grid grid-cols-2 gap-4 rounded-md border border-[color:var(--line-strong)] bg-ink-900/60 p-4 md:grid-cols-5">
             <Stat label="Completed analyses" value={o.analyses.completed} sub={`${o.analyses.running} running · ${o.analyses.failed} failed`} />
             <Stat label="Change polygons" value={o.feature_count.toLocaleString()} />
             <Stat label="Changed area" value={formatArea(o.changed_area_m2)} />
@@ -53,7 +53,7 @@ export default function OverviewPage() {
                     <CartesianGrid stroke="rgba(255,255,255,0.05)" vertical={false} />
                     <XAxis dataKey="severity" tick={{ fill: '#94a3b8', fontSize: 11 }} axisLine={false} tickLine={false} />
                     <YAxis allowDecimals={false} tick={{ fill: '#64748b', fontSize: 10 }} axisLine={false} tickLine={false} />
-                    <Tooltip cursor={{ fill: 'rgba(255,255,255,0.04)' }} contentStyle={{ background: '#0b1220', border: '1px solid rgba(255,255,255,0.1)', fontSize: 12 }} />
+                    <Tooltip cursor={{ fill: 'rgba(255,255,255,0.04)' }} contentStyle={{ background: '#101913', border: '1px solid rgba(255,255,255,0.1)', fontSize: 12 }} />
                     <Bar dataKey="count" name="Polygons" radius={[4, 4, 0, 0]}>
                       {SEVERITIES.map((s) => <Cell key={s} fill={SEVERITY_COLOR[s as Severity]} />)}
                     </Bar>
@@ -77,7 +77,7 @@ export default function OverviewPage() {
           <div className="grid gap-4 md:grid-cols-2">
             <Card title="Recent analyses" action={<Link href="/analyses" className="text-2xs text-accent hover:underline">All analyses</Link>}>
               {analyses.length === 0 ? <EmptyBlock title="Nothing yet" /> : (
-                <ul className="divide-y divide-white/[0.05]">
+                <ul className="divide-y divide-[color:var(--line)]">
                   {analyses.slice(0, 6).map((a) => (
                     <li key={a.id} className="flex items-center justify-between gap-2 py-1.5 text-xs">
                       <button className="focus-ring min-w-0 truncate text-left text-slate-200 hover:text-accent" onClick={() => { setActive(a.id); router.push('/map') }}>{a.name}</button>
@@ -89,7 +89,7 @@ export default function OverviewPage() {
             </Card>
             <Card title="Open alerts" action={<Link href="/alerts" className="text-2xs text-accent hover:underline">Alert centre</Link>}>
               {alerts.error ? <p className="text-xs text-red-300">{alerts.error}</p> : alerts.data && alerts.data.items.length === 0 ? <EmptyBlock title="No open alerts" hint="Create a rule in the alert centre to be notified of matching changes." /> : (
-                <ul className="divide-y divide-white/[0.05]">
+                <ul className="divide-y divide-[color:var(--line)]">
                   {(alerts.data?.items ?? []).map((i) => (
                     <li key={i.id} className="flex items-center justify-between gap-2 py-1.5 text-xs">
                       <span className="min-w-0 truncate text-slate-200">{i.title}</span>

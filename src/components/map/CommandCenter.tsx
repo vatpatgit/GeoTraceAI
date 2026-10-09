@@ -67,11 +67,11 @@ export default function CommandCenter() {
             </div>
           )}
           {!analysis && !quick && (
-            <div className="absolute left-1/2 top-[18%] z-10 w-[min(420px,90%)] -translate-x-1/2 rounded-lg border border-white/10 bg-ink-900/95 p-5 text-center shadow-2xl">
+            <div className="absolute left-1/2 top-[18%] z-10 w-[min(420px,90%)] -translate-x-1/2 rounded-lg border border-[color:var(--line-strong)] bg-ink-900/95 p-5 text-center shadow-2xl">
               <h2 className="text-sm font-medium text-slate-100">{analysesCount === 0 ? 'No analyses yet' : 'No analysis selected'}</h2>
               <p className="mt-1 text-xs text-slate-400">Upload a before/after GeoTIFF pair, or search Sentinel-2 imagery for an area and two dates. Results appear here on the globe and the 2D map.</p>
               {canWrite(user?.role)
-                ? <Link href="/analyses/new" className="btn mt-3 border-accent/40 bg-accent/10 text-accent hover:bg-accent/20">Start a new analysis</Link>
+                ? <Link href="/analyses/new" className="btn mt-3 border-accent-dim bg-accent-surface text-accent hover:bg-[#1a4430]">Start a new analysis</Link>
                 : <p className="mt-3 text-2xs text-slate-500">Your role is read-only; ask an analyst to share a project.</p>}
             </div>
           )}
@@ -82,7 +82,7 @@ export default function CommandCenter() {
             <div role="status" className="absolute left-1/2 top-3 z-20 -translate-x-1/2 rounded border border-amber-400/30 bg-ink-900/95 px-3 py-1.5 text-xs text-amber-200">Showing {fc.returned.toLocaleString('en-US')} of {fc.total.toLocaleString('en-US')} detections on the map; the list and exports contain all of them. Use filters to narrow the map.</div>
           )}
           {analysis && analysis.status !== 'completed' && (
-            <div className="pointer-events-none absolute left-1/2 top-3 z-20 -translate-x-1/2 rounded border border-white/10 bg-ink-900/95 px-3 py-1.5 text-xs text-slate-300">
+            <div className="pointer-events-none absolute left-1/2 top-3 z-20 -translate-x-1/2 rounded border border-[color:var(--line-strong)] bg-ink-900/95 px-3 py-1.5 text-xs text-slate-300">
               {analysis.status === 'failed' ? 'This analysis failed. See Progress for details.' : `Analysis is ${analysis.status.replace(/_/g, ' ')}...`}
             </div>
           )}

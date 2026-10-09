@@ -68,7 +68,7 @@ def migrated_database():
 
 DATA_TABLES = (
     "alert_incidents", "alert_rules", "analysis_exports", "analysis_events", "change_features", "analysis_jobs",
-    "weather_alert_events", "weather_alerts", "weather_aoi_state", "geoguider_messages", "geoguider_conversations",
+    "weather_alert_events", "weather_alerts", "weather_aoi_state", "hazard_alerts", "geoguider_messages", "geoguider_conversations",
     "satellite_acquisitions", "imagery_assets", "areas_of_interest", "projects", "layer_catalog", "regions", "users",
 )
 

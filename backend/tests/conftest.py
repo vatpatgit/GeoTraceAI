@@ -2,6 +2,8 @@ import os
 
 os.environ.setdefault("JWT_SECRET_KEY", "test-secret-that-is-at-least-32-characters-long")
 os.environ.setdefault("ENV", "test")
+os.environ["LLM_PROVIDER"] = "none"  # tests never call a live LLM, whatever backend/.env configures
+os.environ.setdefault("HAZARD_FEED_PROVIDER", "none")
 os.environ.setdefault("JOB_RUNNER", "off")
 os.environ.setdefault("AUTO_MIGRATE", "false")
 os.environ.setdefault(

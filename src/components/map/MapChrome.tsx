@@ -1,6 +1,6 @@
 'use client'
 
-import { BoxSelect, Box, CalendarRange, Columns2, Crosshair, Layers, Map as MapIcon, PanelBottom, PanelRight, Satellite } from 'lucide-react'
+import { BoxSelect, Box, CalendarRange, Columns2, Crosshair, Layers, Map as MapIcon, PanelBottom, PanelRight } from 'lucide-react'
 import { formatCoord } from '@/lib/format'
 import { selectActiveAnalysis, useAppStore, type ViewMode } from '@/store/useAppStore'
 import { useCursorStore } from '@/store/useCursorStore'
@@ -29,12 +29,10 @@ export function ViewSwitcher() {
   )
 }
 
-/** Floating right tool rail: layers, fit, basemap, panel toggles. Every button has a label + tooltip. */
+/** Floating right tool rail: layers, fit, panel toggles. Every button has a label + tooltip. */
 export function ToolRail() {
   const leftPanel = useAppStore((s) => s.leftPanel)
   const setLeftPanel = useAppStore((s) => s.setLeftPanel)
-  const basemap = useAppStore((s) => s.basemap)
-  const setBasemap = useAppStore((s) => s.setBasemap)
   const rightOpen = useAppStore((s) => s.rightPanelOpen)
   const setRightOpen = useAppStore((s) => s.setRightPanelOpen)
   const drawerOpen = useAppStore((s) => s.drawerOpen)
@@ -57,7 +55,6 @@ export function ToolRail() {
       <IconButton label="Select an area: drag a rectangle on the map" active={drawMode} onClick={startDraw}><BoxSelect className="h-4 w-4" /></IconButton>
       <IconButton label="Compare two dates (Sentinel-2)" active={leftPanel === 'quick'} onClick={() => setLeftPanel(leftPanel === 'quick' ? null : 'quick')}><CalendarRange className="h-4 w-4" /></IconButton>
       <IconButton label="Fit to analysis area" disabled={!analysis?.bounds} onClick={() => analysis?.bounds && requestFly({ bbox: analysis.bounds })}><Crosshair className="h-4 w-4" /></IconButton>
-      <IconButton label={basemap === 'satellite' ? 'Switch to dark basemap' : 'Switch to satellite basemap'} onClick={() => setBasemap(basemap === 'satellite' ? 'dark' : 'satellite')}><Satellite className="h-4 w-4" /></IconButton>
       <div className="my-0.5 h-px bg-white/[0.07]" />
       <IconButton label={rightOpen ? 'Hide intelligence panel' : 'Show intelligence panel'} active={rightOpen} onClick={() => setRightOpen(!rightOpen)}><PanelRight className="h-4 w-4" /></IconButton>
       <IconButton label={drawerOpen ? 'Hide analysis drawer' : 'Show analysis drawer'} active={drawerOpen} onClick={() => setDrawerOpen(!drawerOpen)}><PanelBottom className="h-4 w-4" /></IconButton>
