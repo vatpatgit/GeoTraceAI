@@ -224,3 +224,32 @@ def test_every_tool_documents_permission_and_has_a_timeout():
 
 def test_search_window_validation_object():
     SearchIn(bbox=[0, 0, 1, 1], start=date(2020, 1, 1), end=datetime.now(timezone.utc).date())
+
+
+@pytest.mark.asyncio
+async def test_ollama_needs_a_model_not_a_key_and_is_called_natively(monkeypatch):
+    from app.config import settings
+    monkeypatch.setattr(settings, "LLM_PROVIDER", "ollama")
+    monkeypatch.setattr(settings, "LLM_API_KEY", None)
+    monkeypatch.setattr(settings, "LLM_MODEL", None)
+    assert not llm.llm_enabled()
+    monkeypatch.setattr(settings, "LLM_MODEL", "gemma4:26b")
+    assert llm.llm_enabled()
+    seen = {}
+
+    class R:
+        def raise_for_status(self): pass
+        def json(self): return {"message": {"content": '{"intent_type":"help","reply":"I can search imagery."}'}}
+
+    class C:
+        def __init__(self, *a, **k): pass
+        async def __aenter__(self): return self
+        async def __aexit__(self, *a): pass
+        async def post(self, url, **kw):
+            seen["url"], seen["json"] = url, kw["json"]
+            return R()
+
+    monkeypatch.setattr(llm.httpx, "AsyncClient", C)
+    i = await interpret("what are you able to do for me?", TODAY, {})
+    assert i.source == "llm" and i.intent_type == "help"
+    assert seen["url"].endswith("/api/chat") and seen["json"]["model"] == "gemma4:26b" and seen["json"]["think"] is False

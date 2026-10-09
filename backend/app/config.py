@@ -72,10 +72,11 @@ class Settings(BaseSettings):
     ML_DEVICE: Literal["auto", "cpu", "cuda"] = "auto"
 
     # --- optional LLM narration (deterministic analytics work without it) --------------------------------------
-    LLM_PROVIDER: Literal["none", "anthropic", "openai_compatible"] = "none"
+    LLM_PROVIDER: Literal["none", "anthropic", "openai_compatible", "ollama"] = "none"
     LLM_API_KEY: Optional[str] = None
     LLM_MODEL: Optional[str] = None
     LLM_BASE_URL: Optional[str] = None
+    LLM_TIMEOUT_S: float = 30.0  # raise for local models (Ollama on CPU can need several minutes per request)
 
     # --- GeoGuider (conversational copilot; reuses the LLM_* settings above, deterministic parser when no LLM is configured) ---
     GEOGUIDER_ENABLED: bool = True

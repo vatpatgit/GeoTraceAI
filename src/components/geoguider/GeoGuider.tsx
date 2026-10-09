@@ -108,7 +108,7 @@ export default function GeoGuider() {
             {m.blocks.length > 0 && <div className="w-full space-y-1.5">{m.blocks.map((b, i) => <Block key={i} b={b} ctx={ctx} current={m.id === lastAssistant?.id} />)}</div>}
           </div>
         ))}
-        {s.busy && <div className="flex items-center gap-2 text-2xs text-slate-500" role="status"><span className="flex gap-0.5"><i className="h-1.5 w-1.5 animate-bounce rounded-full bg-slate-500" /><i className="h-1.5 w-1.5 animate-bounce rounded-full bg-slate-500 [animation-delay:120ms]" /><i className="h-1.5 w-1.5 animate-bounce rounded-full bg-slate-500 [animation-delay:240ms]" /></span> Working… searching and checking real services can take up to a minute.</div>}
+        {s.busy && <div className="flex items-center gap-2 text-2xs text-slate-500" role="status"><span className="flex gap-0.5"><i className="h-1.5 w-1.5 animate-bounce rounded-full bg-slate-500" /><i className="h-1.5 w-1.5 animate-bounce rounded-full bg-slate-500 [animation-delay:120ms]" /><i className="h-1.5 w-1.5 animate-bounce rounded-full bg-slate-500 [animation-delay:240ms]" /></span> Working… searching real services (or a local language model) can take a minute or more.</div>}
         {s.error && <div role="alert" className="flex items-center justify-between gap-2 rounded-md border border-red-500/30 bg-red-500/[0.06] px-2.5 py-1.5 text-2xs text-red-200"><span>{s.error}</span><button className="btn" onClick={() => void s.retry().then(exec)}>Retry</button></div>}
         <div ref={endRef} />
       </div>

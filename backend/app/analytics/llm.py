@@ -34,12 +34,20 @@ NARRATE_SYSTEM = (
 
 
 def llm_enabled() -> bool:
+    if settings.LLM_PROVIDER == "ollama":
+        return bool(settings.LLM_MODEL)  # local server, no key
     return settings.LLM_PROVIDER != "none" and bool(settings.LLM_API_KEY)
 
 
 async def _complete(system: str, user: str, max_tokens: int = 500) -> str:
-    timeout = httpx.Timeout(30.0, connect=8.0)
+    timeout = httpx.Timeout(settings.LLM_TIMEOUT_S, connect=8.0)
     async with httpx.AsyncClient(timeout=timeout) as client:
+        if settings.LLM_PROVIDER == "ollama":
+            r = await client.post((settings.LLM_BASE_URL or "http://localhost:11434").rstrip("/") + "/api/chat", json={
+                "model": settings.LLM_MODEL, "stream": False, "think": False, "keep_alive": "30m", "options": {"temperature": 0, "num_predict": max_tokens},
+                "messages": [{"role": "system", "content": system}, {"role": "user", "content": user}]})
+            r.raise_for_status()
+            return r.json().get("message", {}).get("content", "")
         if settings.LLM_PROVIDER == "anthropic":
             r = await client.post((settings.LLM_BASE_URL or "https://api.anthropic.com").rstrip("/") + "/v1/messages", headers={
                 "x-api-key": settings.LLM_API_KEY or "", "anthropic-version": "2023-06-01", "content-type": "application/json"},
