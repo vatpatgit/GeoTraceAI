@@ -27,6 +27,7 @@ class ModelCard:
     limitations: list[str] = field(default_factory=list)
     sha256: str | None = None
     bands: tuple[str, ...] = ("red", "green", "blue")
+    arch: str = "siamese_unet"  # network family: "siamese_unet" (default) | "idasiamnet"
 
     @property
     def available(self) -> bool:
@@ -37,7 +38,7 @@ class ModelCard:
             "id": self.id, "name": self.name, "dataset": self.dataset, "category": self.category,
             "description": self.description, "architecture": self.architecture, "threshold": self.threshold,
             "trained_gsd_m": self.trained_gsd_m, "metrics": self.metrics, "metrics_note": self.metrics_note,
-            "limitations": self.limitations, "available": self.available, "bands": list(self.bands),
+            "limitations": self.limitations, "available": self.available, "bands": list(self.bands), "arch": self.arch,
             "sha256": self.sha256,
         }
 
@@ -59,7 +60,7 @@ def load_cards() -> tuple[str | None, dict[str, ModelCard]]:
             description=m.get("description", ""), architecture=m.get("architecture", ""),
             trained_gsd_m=float(m.get("input", {}).get("trained_gsd_m", 2.0)), metrics=m.get("metrics", {}),
             metrics_note=m.get("metrics_note", ""), limitations=list(m.get("limitations", [])), sha256=m.get("sha256"),
-            bands=tuple(m.get("input", {}).get("bands", ["red", "green", "blue"])),
+            bands=tuple(m.get("input", {}).get("bands", ["red", "green", "blue"])), arch=m.get("arch", "siamese_unet"),
         )
     return raw.get("default"), cards
 

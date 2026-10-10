@@ -38,7 +38,9 @@ async def test_model_choice_follows_resolution():
     if learned_ready("oscd-s2-v1"):
         assert mid == "oscd-s2-v1" and "fine-tuned on Sentinel-2" in reason
     mid, reason = choose_model(1.0)
-    if learned_ready("levir-cd-v1"):
+    if learned_ready("idasiamnet-levir-v1"):
+        assert mid == "idasiamnet-levir-v1" and "aerial" in reason
+    elif learned_ready("levir-cd-v1"):
         assert mid == "levir-cd-v1" and "aerial" in reason
     assert choose_model(1.0, "x")[0] == "x"
 

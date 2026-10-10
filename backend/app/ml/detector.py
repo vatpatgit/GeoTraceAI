@@ -54,7 +54,12 @@ def load_model(card: ModelCard, device):
             raise PairIncompatibleError(f"Model weights for '{card.id}' are not installed.", code="model_unavailable")
         try:
             ckpt = torch.load(card.weights_path, map_location="cpu", weights_only=True)
-            model = SiameseResNetUNet(pretrained=False)  # never downloads ImageNet weights
+            if card.arch == "idasiamnet":
+                from terratrack.models.idasiamnet import IDASiamNet
+
+                model = IDASiamNet(pretrained_weights=None)  # weights come from the checkpoint; nothing is downloaded
+            else:
+                model = SiameseResNetUNet(pretrained=False)  # never downloads ImageNet weights
             model.load_state_dict(ckpt["model_state_dict"], strict=True)
         except Exception as exc:  # incompatible / corrupt checkpoint
             raise PairIncompatibleError(f"Model checkpoint '{card.id}' could not be loaded: {exc}", code="model_incompatible") from exc

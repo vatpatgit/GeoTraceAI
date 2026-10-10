@@ -2,6 +2,55 @@
   "default": "levir-cd-v1",
   "models": [
     {
+      "id": "idasiamnet-levir-v1",
+      "name": "IDA-SiamNet (ResNet50) - LEVIR-CD (building change, aerial)",
+      "dataset": "LEVIR-CD",
+      "category": "building_change",
+      "arch": "idasiamnet",
+      "description": "Interactive- and Dynamic-Aware Siamese network (SEFI/CEFI feature interaction, FDAF flow alignment head) trained at native 0.5 m on LEVIR-CD, 12,000 iterations.",
+      "weights": "idasiamnet-levir-v1.pt",
+      "sha256": "5230c2ce3abb1719090c5672432dc6f88ae9251f457ad4989c5ad85bf0e05501",
+      "architecture": "Siamese ResNet50 (shared) + SEFI/CEFI interaction (stages 2-4) + multi-scale fusion + FDAF (adaptive deformable conv + flow warp) + MixFFN head",
+      "parameters_millions": 34.64,
+      "input": {
+        "bands": [
+          "red",
+          "green",
+          "blue"
+        ],
+        "normalisation": "imagenet",
+        "tile_size": 256,
+        "trained_gsd_m": 0.5
+      },
+      "threshold": 0.75,
+      "trained_epoch": 12000,
+      "metrics": {
+        "test": {
+          "num_samples": 128,
+          "threshold": 0.75,
+          "precision": 0.9229949007681894,
+          "recall": 0.9027825472942654,
+          "f1": 0.9127768431353963,
+          "change_iou": 0.8395487507529865
+        },
+        "val": {
+          "num_samples": 64,
+          "threshold": 0.75,
+          "precision": 0.9155383692762059,
+          "recall": 0.9074455982172152,
+          "f1": 0.9114740206311316,
+          "change_iou": 0.8373470527176649
+        }
+      },
+      "metrics_note": "Pixel-level change-class metrics on whole 1024x1024 images at native 0.5 m. Checkpoint and threshold were chosen on the 64 validation pairs; the 128 official test pairs were scored once. Run by ML/scripts/train_idasiamnet_levir.py.",
+      "limitations": [
+        "Trained on 0.5 m RGB aerial imagery of US cities (building change); other regions, sensors, seasons and change types are not validated.",
+        "NOT validated on Sentinel-2 (10 m) or other medium-resolution imagery; use the Sentinel-2 fine-tuned model there.",
+        "Detects building construction / demolition style change; vegetation, flood or crop change is not what it was trained for.",
+        "ResNet50 backbone with ImageNet initialisation (the reference design uses ResNet18 / MiT-b1); BatchNorm instead of SyncBN."
+      ]
+    },
+    {
       "id": "levir-cd-v1",
       "name": "Siamese ResNet50-UNet - LEVIR-CD (building change)",
       "dataset": "LEVIR-CD",

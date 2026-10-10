@@ -17,7 +17,8 @@ from app.ml.registry import get_card, learned_ready
 from app.services.quick_changes import SENTINEL_MODEL_ID, detect_from_images
 
 MAX_SIDE = 2048
-AERIAL_MODEL_ID = "levir-cd-v1"  # trained on 0.5-2 m aerial imagery
+AERIAL_MODEL_ID = "idasiamnet-levir-v1"  # IDA-SiamNet trained on 0.5 m aerial imagery (LEVIR-CD test F1 0.91)
+AERIAL_FALLBACK_ID = "levir-cd-v1"  # the earlier model, used when the newer one is not installed
 HIRES_LIMIT_M = 5.0  # finer than this => the aerial-trained model; coarser => the Sentinel-2 fine-tune
 
 
@@ -56,8 +57,10 @@ def render_asset(path: str, style: RasterStyle, bbox: tuple[float, float, float,
 def choose_model(px_m: float, requested: str | None = None) -> tuple[str | None, str]:
     if requested:
         return requested, "chosen by the caller"
-    if px_m <= HIRES_LIMIT_M and learned_ready(AERIAL_MODEL_ID):
-        return AERIAL_MODEL_ID, f"{px_m:.1f} m/px is high resolution: using the model trained on 0.5-2 m aerial imagery"
+    if px_m <= HIRES_LIMIT_M:
+        for mid in (AERIAL_MODEL_ID, AERIAL_FALLBACK_ID):
+            if learned_ready(mid):
+                return mid, f"{px_m:.1f} m/px is high resolution: using the model trained on 0.5 m aerial imagery"
     if learned_ready(SENTINEL_MODEL_ID):
         return SENTINEL_MODEL_ID, f"{px_m:.1f} m/px is medium resolution: using the model fine-tuned on Sentinel-2 (10 m) pairs"
     return None, "no trained model installed"
